@@ -8,6 +8,7 @@ use soroban_sdk::{Address, Env, String, Vec};
 
 use crate::errors::ContractError;
 use crate::events::emit_tip_sent;
+use crate::leaderboard;
 use crate::storage::{self, DataKey};
 use crate::token;
 use crate::types::Tip;
@@ -106,6 +107,7 @@ pub fn send_tip(
     profile.total_tips_received += amount;
     profile.total_tips_count += 1;
     storage::set_profile(env, &profile);
+    leaderboard::update_leaderboard(env, &profile);
 
     store_tip(env, tipper, creator, amount, message.clone());
 
