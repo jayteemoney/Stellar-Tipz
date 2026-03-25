@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "start": "vite",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "prepare": "husky"
   },
   "lint-staged": {
     "**/*.{ts,tsx}": [
