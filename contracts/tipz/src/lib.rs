@@ -246,9 +246,17 @@ impl TipzContract {
     }
 
     /// Get global contract statistics.
-    pub fn get_stats(_env: Env) -> Result<ContractStats, ContractError> {
-        // TODO: Implement in issue #23 - Contract Stats
-        Err(ContractError::NotInitialized)
+    pub fn get_stats(env: Env) -> Result<ContractStats, ContractError> {
+        if !storage::is_initialized(&env) {
+            return Err(ContractError::NotInitialized);
+        }
+        Ok(ContractStats {
+            total_creators: storage::get_total_creators(&env),
+            total_tips_count: storage::get_tip_count(&env),
+            total_tips_volume: storage::get_total_tips_volume(&env),
+            total_fees_collected: storage::get_total_fees(&env),
+            fee_bps: storage::get_fee_bps(&env),
+        })
     }
 
     /// Extend the contract instance TTL manually (admin only).

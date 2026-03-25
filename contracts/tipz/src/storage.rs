@@ -137,7 +137,6 @@ pub fn set_admin(env: &Env, admin: &Address) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 /// Returns the withdrawal fee in basis points (100 bps = 1 %).
-#[allow(dead_code)]
 pub fn get_fee_bps(env: &Env) -> u32 {
     env.storage()
         .instance()
@@ -286,7 +285,6 @@ pub fn add_to_tips_volume(env: &Env, amount: i128) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 /// Returns the lifetime total fees collected in stroops.
-#[allow(dead_code)]
 pub fn get_total_fees(env: &Env) -> i128 {
     env.storage()
         .instance()

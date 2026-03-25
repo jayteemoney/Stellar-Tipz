@@ -2,7 +2,10 @@
 
 #![cfg(test)]
 
-use soroban_sdk::{testutils::{Address as _, Ledger as _}, Address, Env, String};
+use soroban_sdk::{
+    testutils::{Address as _, Ledger as _},
+    Address, Env, String,
+};
 
 use crate::errors::ContractError;
 use crate::{TipzContract, TipzContractClient};
@@ -331,7 +334,10 @@ fn test_update_display_name() {
     );
 
     let updated = client.get_profile(&caller);
-    assert_eq!(updated.display_name, String::from_str(&env, "Alice Updated"));
+    assert_eq!(
+        updated.display_name,
+        String::from_str(&env, "Alice Updated")
+    );
     assert!(updated.updated_at > before);
 }
 
@@ -408,13 +414,7 @@ fn test_update_display_name_too_long() {
          aaaaaaaaaaaaaaa",
     );
 
-    let result = client.try_update_profile(
-        &caller,
-        &Some(overlong),
-        &None,
-        &None,
-        &None,
-    );
+    let result = client.try_update_profile(&caller, &Some(overlong), &None, &None, &None);
 
     assert_eq!(result, Err(Ok(ContractError::InvalidDisplayName)));
 }
@@ -436,13 +436,7 @@ fn test_update_bio_too_long() {
          a", // 281 chars
     );
 
-    let result = client.try_update_profile(
-        &caller,
-        &None,
-        &Some(long_bio),
-        &None,
-        &None,
-    );
+    let result = client.try_update_profile(&caller, &None, &Some(long_bio), &None, &None);
 
     assert_eq!(result, Err(Ok(ContractError::MessageTooLong)));
 }
@@ -465,5 +459,8 @@ fn test_update_requires_auth() {
 
     assert_eq!(result, Err(Ok(ContractError::NotRegistered)));
     let alice_profile = client.get_profile(&alice);
-    assert_eq!(alice_profile.display_name, String::from_str(&env, "Display Name"));
+    assert_eq!(
+        alice_profile.display_name,
+        String::from_str(&env, "Display Name")
+    );
 }
