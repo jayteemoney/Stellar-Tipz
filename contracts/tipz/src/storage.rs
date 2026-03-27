@@ -62,6 +62,10 @@ pub enum DataKey {
     Initialized,
     /// Native XLM token contract address (SAC)
     NativeToken,
+    /// Emergency pause flag
+    Paused,
+    /// Minimum allowed tip amount in stroops
+    MinTipAmount,
 }
 
 /// Extend the contract instance TTL when a write transaction starts.
@@ -110,6 +114,37 @@ pub fn get_native_token(env: &Env) -> Address {
 /// Sets the native XLM token contract address.
 pub fn set_native_token(env: &Env, addr: &Address) {
     env.storage().instance().set(&DataKey::NativeToken, addr);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Pause state
+// ──────────────────────────────────────────────────────────────────────────────
+
+/// Returns `true` when the contract is paused.
+pub fn is_paused(env: &Env) -> bool {
+    env.storage().instance().get(&DataKey::Paused).unwrap_or(false)
+}
+
+/// Sets the paused flag.
+pub fn set_paused(env: &Env, paused: bool) {
+    env.storage().instance().set(&DataKey::Paused, &paused);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Minimum tip amount
+// ──────────────────────────────────────────────────────────────────────────────
+
+/// Returns the minimum allowed tip amount in stroops.
+pub fn get_min_tip_amount(env: &Env) -> i128 {
+    env.storage()
+        .instance()
+        .get(&DataKey::MinTipAmount)
+        .unwrap_or(0_i128)
+}
+
+/// Sets the minimum allowed tip amount in stroops.
+pub fn set_min_tip_amount(env: &Env, amount: i128) {
+    env.storage().instance().set(&DataKey::MinTipAmount, &amount);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────

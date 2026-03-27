@@ -77,7 +77,7 @@ pub fn send_tip(
     message: &String,
 ) -> Result<(), ContractError> {
     storage::extend_instance_ttl(env);
-    // Security: explicit auth on the spending address; no implicit caller trust.
+    crate::admin::require_not_paused(env)?;
     tipper.require_auth();
 
     if !storage::has_profile(env, creator) {
@@ -90,6 +90,11 @@ pub fn send_tip(
 
     if amount <= 0 {
         return Err(ContractError::InvalidAmount);
+    }
+
+    let min_tip = storage::get_min_tip_amount(env);
+    if amount < min_tip {
+        return Err(ContractError::TipBelowMinimum);
     }
 
     if message.len() > 280 {
@@ -136,7 +141,7 @@ pub fn send_tip(
 /// - [`ContractError::InvalidAmount`] if `amount` is ≤ 0
 /// - [`ContractError::InsufficientBalance`] if `amount` > profile balance or contract lacks XLM
 pub fn withdraw_tips(env: &Env, caller: &Address, amount: i128) -> Result<(), ContractError> {
-    // Security: only the profile owner can withdraw their balance.
+    crate::admin::require_not_paused(env)?;
     caller.require_auth();
 
     if !storage::has_profile(env, caller) {

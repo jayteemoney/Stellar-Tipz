@@ -25,7 +25,6 @@ mod tips;
 mod token;
 mod types;
 mod validation;
-mod withdraw;
 
 #[cfg(test)]
 mod test;
@@ -263,5 +262,25 @@ impl TipzContract {
     /// Extend the contract instance TTL manually (admin only).
     pub fn bump_ttl(env: Env, caller: Address) -> Result<(), ContractError> {
         admin::bump_ttl(&env, &caller)
+    }
+
+    pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
+        admin::pause(&env, &caller)
+    }
+
+    pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
+        admin::unpause(&env, &caller)
+    }
+
+    pub fn is_paused(env: Env) -> bool {
+        storage::is_paused(&env)
+    }
+
+    pub fn set_min_tip_amount(env: Env, caller: Address, amount: i128) -> Result<(), ContractError> {
+        admin::set_min_tip_amount(&env, &caller, amount)
+    }
+
+    pub fn get_min_tip_amount(env: Env) -> i128 {
+        storage::get_min_tip_amount(&env)
     }
 }

@@ -40,4 +40,8 @@ pub enum ContractError {
     InvalidImageUrl = 16,
     /// Batch update exceeds the maximum allowed entries (50)
     BatchTooLarge = 17,
+    /// Contract is paused and state-changing operations are disabled
+    ContractPaused = 18,
+    /// Tip amount is below the configured minimum
+    TipBelowMinimum = 19,
 }

@@ -91,6 +91,24 @@ pub fn emit_fee_collector_updated(env: &Env, new_collector: &Address) {
         (new_collector.clone(),),
     );
 }
+pub fn emit_contract_paused(env: &Env, admin: &Address) {
+    env.events().publish(
+        (symbol_short!("contract"), symbol_short!("paused")),
+        (admin.clone(),),
+    );
+}
+pub fn emit_contract_unpaused(env: &Env, admin: &Address) {
+    env.events().publish(
+        (symbol_short!("contract"), symbol_short!("unpaused")),
+        (admin.clone(),),
+    );
+}
+pub fn emit_min_tip_amount_updated(env: &Env, old_min: i128, new_min: i128) {
+    env.events().publish(
+        (symbol_short!("tip"), symbol_short!("min")),
+        (old_min, new_min),
+    );
+}
 
 // ── Batch events ──────────────────────────────────────────────────────────────
 
