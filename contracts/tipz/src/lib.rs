@@ -32,7 +32,7 @@ mod test;
 use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, String, Vec};
 
 use crate::errors::ContractError;
-use crate::types::{ContractStats, CreditTier, LeaderboardEntry, Profile, Tip};
+use crate::types::{ContractStats, CreditBreakdown, CreditTier, LeaderboardEntry, Profile, Tip};
 
 /// The current contract interface version, stored on-chain during initialization.
 /// Must be incremented manually in source when the contract interface changes.
@@ -202,6 +202,14 @@ impl TipzContract {
         credit::get_credit_tier(&env, &address)
     }
 
+    /// Return the weighted credit score breakdown for a registered profile.
+    pub fn get_credit_breakdown(
+        env: Env,
+        address: Address,
+    ) -> Result<CreditBreakdown, ContractError> {
+        credit::get_credit_breakdown(&env, &address)
+    }
+
     // ──────────────────────────────────────────────
     // Leaderboard
     // ──────────────────────────────────────────────
@@ -218,6 +226,11 @@ impl TipzContract {
     /// when the address has not yet appeared in the top 50.
     pub fn get_leaderboard_rank(env: Env, address: Address) -> Option<u32> {
         leaderboard::get_leaderboard_rank(&env, &address)
+    }
+
+    /// Return the current number of entries on the leaderboard (0–50).
+    pub fn get_leaderboard_size(env: Env) -> u32 {
+        leaderboard::get_leaderboard_size(&env)
     }
 
     // ──────────────────────────────────────────────
@@ -250,9 +263,17 @@ impl TipzContract {
     }
 
     /// Get global contract statistics.
-    pub fn get_stats(_env: Env) -> Result<ContractStats, ContractError> {
-        // TODO: Implement in issue #23 - Contract Stats
-        Err(ContractError::NotInitialized)
+    pub fn get_stats(env: Env) -> Result<ContractStats, ContractError> {
+        if !storage::is_initialized(&env) {
+            return Err(ContractError::NotInitialized);
+        }
+        Ok(ContractStats {
+            total_creators: storage::get_total_creators(&env),
+            total_tips_count: storage::get_tip_count(&env),
+            total_tips_volume: storage::get_total_tips_volume(&env),
+            total_fees_collected: storage::get_total_fees(&env),
+            fee_bps: storage::get_fee_bps(&env),
+        })
     }
 
     /// Extend the contract instance TTL manually (admin only).
@@ -288,5 +309,29 @@ impl TipzContract {
         new_wasm_hash: BytesN<32>,
     ) -> Result<(), ContractError> {
         admin::upgrade(&env, &admin, &new_wasm_hash)
+    }
+
+    pub fn pause(env: Env, caller: Address) -> Result<(), ContractError> {
+        admin::pause(&env, &caller)
+    }
+
+    pub fn unpause(env: Env, caller: Address) -> Result<(), ContractError> {
+        admin::unpause(&env, &caller)
+    }
+
+    pub fn is_paused(env: Env) -> bool {
+        storage::is_paused(&env)
+    }
+
+    pub fn set_min_tip_amount(
+        env: Env,
+        caller: Address,
+        amount: i128,
+    ) -> Result<(), ContractError> {
+        admin::set_min_tip_amount(&env, &caller, amount)
+    }
+
+    pub fn get_min_tip_amount(env: Env) -> i128 {
+        storage::get_min_tip_amount(&env)
     }
 }

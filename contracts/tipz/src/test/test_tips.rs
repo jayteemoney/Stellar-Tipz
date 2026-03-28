@@ -355,6 +355,32 @@ fn test_send_tip_updates_leaderboard() {
 }
 
 #[test]
+fn test_send_tip_updates_leaderboard_once() {
+    let (env, client, contract_id, tipper, creator, _sac) = setup_env();
+
+    let message = String::from_str(&env, "tip");
+    let amount: i128 = 100_000_000;
+
+    client.send_tip(&tipper, &creator, &amount, &message);
+
+    env.as_contract(&contract_id, || {
+        let entries = crate::leaderboard::get_leaderboard(&env, 0);
+        assert_eq!(entries.len(), 1);
+        let entry = entries.get(0).unwrap();
+        assert_eq!(entry.address, creator);
+        assert_eq!(entry.total_tips_received, amount);
+
+        let profile: Profile = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Profile(entry.address.clone()))
+            .unwrap();
+        assert_eq!(profile.total_tips_received, amount);
+        assert_eq!(profile.total_tips_count, 1);
+    });
+}
+
+#[test]
 fn test_send_tip_empty_message_allowed() {
     let (env, client, contract_id, tipper, creator, _sac) = setup_env();
 

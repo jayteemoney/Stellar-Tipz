@@ -32,7 +32,7 @@ import {
   getTokenBalance,
   getServer,
   submitTx,
-} from "../../helpers/soroban";
+} from "../../services";
 
 import { SendAmount } from "./send-amount";
 import { ConnectWallet } from "./connect-wallet";

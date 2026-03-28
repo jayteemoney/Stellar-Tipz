@@ -87,6 +87,22 @@ pub enum CreditTier {
     Diamond,
 }
 
+/// Component-level breakdown of a profile credit score.
+#[contracttype]
+#[derive(Clone, Debug, PartialEq)]
+pub struct CreditBreakdown {
+    /// Fixed score every registered profile receives.
+    pub base: u32,
+    /// Weighted contribution from lifetime tips.
+    pub tip_score: u32,
+    /// Weighted contribution from X metrics.
+    pub x_score: u32,
+    /// Weighted contribution from account age.
+    pub age_score: u32,
+    /// Final score after summing all components (capped at 100).
+    pub total: u32,
+}
+
 /// Global contract statistics.
 #[contracttype]
 #[derive(Clone, Debug)]

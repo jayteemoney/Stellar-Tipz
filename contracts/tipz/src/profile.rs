@@ -39,6 +39,8 @@ pub fn register_profile(
 ) -> Result<Profile, ContractError> {
     storage::extend_instance_ttl(env);
 
+    crate::admin::require_not_paused(env)?;
+
     // Require explicit authorisation from the caller.
     caller.require_auth();
 
@@ -120,6 +122,8 @@ pub fn update_profile(
     x_handle: Option<String>,
 ) -> Result<(), ContractError> {
     storage::extend_instance_ttl(env);
+
+    crate::admin::require_not_paused(env)?;
 
     caller.require_auth();
 

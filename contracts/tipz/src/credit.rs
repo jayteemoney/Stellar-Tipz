@@ -36,22 +36,86 @@ use soroban_sdk::{Address, Env};
 
 use crate::errors::ContractError;
 use crate::storage;
-use crate::types::{CreditTier, Profile};
+use crate::types::{CreditBreakdown, CreditTier, Profile};
 
 /// Base score awarded to every registered profile.
 /// Places new creators in the Silver tier (40–59) by default.
 pub const BASE_SCORE: u32 = 40;
 
-/// Tip volume (in stroops) that yields the maximum tip sub-score of 100.
-/// 1_000_000_000 stroops = 100 XLM.
-const TIP_VOLUME_CAP: i128 = 1_000_000_000;
+/// Maximum possible credit score.
+pub const MAX_SCORE: u32 = 100;
 
-/// Stroops per XLM (used to normalise tip volume to 0–100).
-const STROOPS_PER_XLM: i128 = 10_000_000;
+/// Weight (percent) applied to the tip sub-score.
+pub const TIP_WEIGHT: u32 = 20;
 
-/// Seconds in one day — the minimum account age for the age component to
+/// Weight (percent) applied to the X metrics sub-score.
+pub const X_WEIGHT: u32 = 30;
+
+/// Weight (percent) applied to the account age sub-score.
+pub const AGE_WEIGHT: u32 = 10;
+
+/// Divisor used to transform stroop tip volume into a 0-100 sub-score.
+pub const TIP_DIVISOR: i128 = 10_000_000;
+
+/// Divisor used to map followers into the follower contribution.
+pub const FOLLOWER_DIVISOR: u32 = 50;
+
+/// Divisor used to map engagement average into the engagement contribution.
+pub const ENGAGEMENT_DIVISOR: u32 = 10;
+
+/// Divisor used to map account age in days into a 0-100 age sub-score.
+pub const AGE_DIVISOR: u32 = 10;
+
+/// Hard cap for normalized tip sub-score.
+pub const TIP_CAP: u32 = 100;
+
+/// Hard cap applied to each X sub-component (followers and engagement).
+pub const X_SUB_CAP: u32 = 50;
+
+/// Hard cap for normalized age sub-score.
+pub const AGE_CAP: u32 = 100;
+
+/// Tip volume (in stroops) that yields the maximum tip sub-score.
+const TIP_VOLUME_CAP: i128 = (TIP_CAP as i128) * TIP_DIVISOR;
+
+/// Seconds in one day - the minimum account age for the age component to
 /// contribute anything to the score.
 const SECONDS_PER_DAY: u64 = 86_400;
+
+/// Build the weighted credit component breakdown for `profile` at `now`.
+pub fn get_credit_breakdown_for_profile(profile: &Profile, now: u64) -> CreditBreakdown {
+    let tip_sub: u32 = (profile.total_tips_received.clamp(0, TIP_VOLUME_CAP) / TIP_DIVISOR) as u32;
+
+    let x_sub: u32 = if profile.x_followers == 0 && profile.x_engagement_avg == 0 {
+        0
+    } else {
+        let follower_part = (profile.x_followers / FOLLOWER_DIVISOR).min(X_SUB_CAP);
+        let engagement_part = (profile.x_engagement_avg / ENGAGEMENT_DIVISOR).min(X_SUB_CAP);
+
+        follower_part + engagement_part
+    };
+
+    let age_sub: u32 =
+        if now <= profile.registered_at || now - profile.registered_at < SECONDS_PER_DAY {
+            0
+        } else {
+            let age_days = (now - profile.registered_at) / SECONDS_PER_DAY;
+            (age_days as u32 / AGE_DIVISOR).min(AGE_CAP)
+        };
+
+    let tip_score = tip_sub * TIP_WEIGHT / MAX_SCORE;
+    let x_score = x_sub * X_WEIGHT / MAX_SCORE;
+    let age_score = age_sub * AGE_WEIGHT / MAX_SCORE;
+    let total = (BASE_SCORE + tip_score + x_score + age_score).min(MAX_SCORE);
+
+    CreditBreakdown {
+        base: BASE_SCORE,
+        tip_score,
+        x_score,
+        age_score,
+        total,
+    }
+}
 
 /// Compute the credit score (0–100) for `profile` at the given `now` timestamp
 /// (seconds since the Unix epoch, obtained from `env.ledger().timestamp()`).
@@ -64,45 +128,7 @@ const SECONDS_PER_DAY: u64 = 86_400;
 /// | all X metric fields are 0                | X component = 0                |
 /// | account age < 1 day                      | age component = 0              |
 pub fn calculate_credit_score(profile: &Profile, now: u64) -> u32 {
-    // ── Tip volume sub-score (0–100) ─────────────────────────────────────────
-    // Clamp negative balances to 0 (defensive), then cap at TIP_VOLUME_CAP so
-    // arbitrarily large values don't overflow the cast to u32.
-    let tip_sub: u32 =
-        (profile.total_tips_received.clamp(0, TIP_VOLUME_CAP) / STROOPS_PER_XLM) as u32;
-    // tip_sub is guaranteed 0..=100
-
-    // ── X metrics sub-score (0–100) ──────────────────────────────────────────
-    // All three X fields at 0 → the whole component contributes 0.
-    let x_sub: u32 = if profile.x_followers == 0 && profile.x_engagement_avg == 0 {
-        0
-    } else {
-        // Followers half (0–50): saturates at 2 500 followers.
-        let follower_part = (profile.x_followers / 50).min(50);
-
-        // Engagement half (0–50): saturates at an average engagement of 500.
-        let engagement_part = (profile.x_engagement_avg / 10).min(50);
-
-        follower_part + engagement_part // 0..=100
-    };
-
-    // ── Account age sub-score (0–100) ─────────────────────────────────────────
-    // Age component is 0 when account is less than one day old.
-    // Reaches 100 at 1 000 days (~2.7 years).
-    let age_sub: u32 =
-        if now <= profile.registered_at || now - profile.registered_at < SECONDS_PER_DAY {
-            0
-        } else {
-            let age_days = (now - profile.registered_at) / SECONDS_PER_DAY;
-            (age_days as u32 / 10).min(100)
-        };
-
-    // ── Weighted contributions ────────────────────────────────────────────────
-    let tip_pts = tip_sub * 20 / 100; // 0–20
-    let x_pts = x_sub * 30 / 100; // 0–30
-    let age_pts = age_sub * 10 / 100; // 0–10
-
-    // Total is capped at 100.  Maximum possible: 40 + 20 + 30 + 10 = 100.
-    (BASE_SCORE + tip_pts + x_pts + age_pts).min(100)
+    get_credit_breakdown_for_profile(profile, now).total
 }
 
 /// Map a credit score (0–100) to its [`CreditTier`].
@@ -136,4 +162,18 @@ pub fn get_credit_tier(env: &Env, address: &Address) -> Result<(u32, CreditTier)
     let tier = get_tier(score);
 
     Ok((score, tier))
+}
+
+/// Load the profile for `address` and return the score component breakdown.
+pub fn get_credit_breakdown(
+    env: &Env,
+    address: &Address,
+) -> Result<CreditBreakdown, ContractError> {
+    if !storage::has_profile(env, address) {
+        return Err(ContractError::NotRegistered);
+    }
+
+    let profile: Profile = storage::get_profile(env, address);
+    let now = env.ledger().timestamp();
+    Ok(get_credit_breakdown_for_profile(&profile, now))
 }

@@ -24,6 +24,13 @@ pub fn require_admin(env: &Env, caller: &Address) -> Result<(), ContractError> {
     Ok(())
 }
 
+pub fn require_not_paused(env: &Env) -> Result<(), ContractError> {
+    if storage::is_paused(env) {
+        return Err(ContractError::ContractPaused);
+    }
+    Ok(())
+}
+
 /// Initialize the contract. Can only be called once.
 pub fn initialize(
     env: &Env,
@@ -46,6 +53,8 @@ pub fn initialize(
     storage::set_fee_bps(env, fee_bps);
     storage::set_native_token(env, native_token);
     storage::set_version(env, CONTRACT_VERSION);
+    storage::set_paused(env, false);
+    storage::set_min_tip_amount(env, 1_000_000_i128);
 
     // Initialise counters to zero so reads never return None.
     env.storage()
@@ -197,5 +206,33 @@ pub fn upgrade(
         .update_current_contract_wasm(new_wasm_hash.clone());
     let current = storage::get_version(env);
     storage::set_version(env, current + 1);
+    Ok(())
+}
+
+pub fn pause(env: &Env, caller: &Address) -> Result<(), ContractError> {
+    storage::extend_instance_ttl(env);
+    require_admin(env, caller)?;
+    storage::set_paused(env, true);
+    events::emit_contract_paused(env, caller);
+    Ok(())
+}
+
+pub fn unpause(env: &Env, caller: &Address) -> Result<(), ContractError> {
+    storage::extend_instance_ttl(env);
+    require_admin(env, caller)?;
+    storage::set_paused(env, false);
+    events::emit_contract_unpaused(env, caller);
+    Ok(())
+}
+
+pub fn set_min_tip_amount(env: &Env, caller: &Address, amount: i128) -> Result<(), ContractError> {
+    storage::extend_instance_ttl(env);
+    require_admin(env, caller)?;
+    if amount < 0 {
+        return Err(ContractError::InvalidAmount);
+    }
+    let old = storage::get_min_tip_amount(env);
+    storage::set_min_tip_amount(env, amount);
+    events::emit_min_tip_amount_updated(env, old, amount);
     Ok(())
 }

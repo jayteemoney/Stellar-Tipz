@@ -6,6 +6,7 @@
 
 use soroban_sdk::{Address, Env, String, Vec};
 
+use crate::credit;
 use crate::errors::ContractError;
 use crate::events::emit_tip_sent;
 use crate::leaderboard;
@@ -76,6 +77,7 @@ pub fn send_tip(
     message: &String,
 ) -> Result<(), ContractError> {
     storage::extend_instance_ttl(env);
+    crate::admin::require_not_paused(env)?;
     tipper.require_auth();
 
     if !storage::has_profile(env, creator) {
@@ -90,23 +92,34 @@ pub fn send_tip(
         return Err(ContractError::InvalidAmount);
     }
 
+    let min_tip = storage::get_min_tip_amount(env);
+    if amount < min_tip {
+        return Err(ContractError::TipBelowMinimum);
+    }
+
     if message.len() > 280 {
         return Err(ContractError::MessageTooLong);
     }
 
     let contract_address = env.current_contract_address();
+    // Security: native SAC transfer has no callback path into this contract.
     token::transfer_xlm(env, tipper, &contract_address, amount)?;
 
     let mut profile = storage::get_profile(env, creator);
     profile.balance += amount;
     profile.total_tips_received += amount;
     profile.total_tips_count += 1;
+
+    // Update credit score based on new tip totals
+    profile.credit_score = credit::calculate_credit_score(&profile, env.ledger().timestamp());
+
     storage::set_profile(env, &profile);
     leaderboard::update_leaderboard(env, &profile);
 
     store_tip(env, tipper, creator, amount, message.clone());
 
-    storage::add_to_tips_volume(env, amount);
+    // Security: checked accumulation prevents silent i128 overflow.
+    storage::add_to_tips_volume(env, amount)?;
 
     emit_tip_sent(env, tipper, creator, amount);
 
@@ -128,6 +141,7 @@ pub fn send_tip(
 /// - [`ContractError::InvalidAmount`] if `amount` is ≤ 0
 /// - [`ContractError::InsufficientBalance`] if `amount` > profile balance or contract lacks XLM
 pub fn withdraw_tips(env: &Env, caller: &Address, amount: i128) -> Result<(), ContractError> {
+    crate::admin::require_not_paused(env)?;
     caller.require_auth();
 
     if !storage::has_profile(env, caller) {
@@ -146,6 +160,7 @@ pub fn withdraw_tips(env: &Env, caller: &Address, amount: i128) -> Result<(), Co
 
     // Calculate fee and net amount
     let fee_bps = storage::get_fee_bps(env);
+    // Security: fee path is mandatory for all withdrawals (no fee bypass branch).
     let (fee, net) = crate::fees::calculate_fee(amount, fee_bps)?;
 
     let contract_address = env.current_contract_address();
@@ -165,7 +180,7 @@ pub fn withdraw_tips(env: &Env, caller: &Address, amount: i128) -> Result<(), Co
 
     // Update global fees counter
     if fee > 0 {
-        storage::add_to_fees(env, fee);
+        storage::add_to_fees(env, fee)?;
     }
 
     // Emit withdrawal event: (creator, net, fee)

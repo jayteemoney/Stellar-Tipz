@@ -13,9 +13,9 @@ import {
   xdr,
 } from "@stellar/stellar-sdk";
 
-import { NetworkDetails } from "./network";
-import { stroopToXlm } from "./format";
-import { ERRORS } from "./error";
+import { NetworkDetails } from "../helpers/network";
+import { stroopToXlm } from "../helpers/format";
+import { ERRORS } from "../helpers/error";
 
 // TODO: once soroban supports estimated fees, we can fetch this
 export const BASE_FEE = "100";

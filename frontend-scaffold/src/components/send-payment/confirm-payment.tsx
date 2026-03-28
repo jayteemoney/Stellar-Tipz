@@ -4,7 +4,7 @@ import { Button, Heading, Profile } from "@stellar/design-system";
 import { StellarWalletsKit } from "@creit.tech/stellar-wallets-kit";
 import { xlmToStroop } from "../../helpers/format";
 import { NetworkDetails, signTx } from "../../helpers/network";
-import { makePayment, getTxBuilder, getServer } from "../../helpers/soroban";
+import { makePayment, getTxBuilder, getServer } from "../../services";
 import { ERRORS } from "../../helpers/error";
 
 interface ConfirmPaymentProps {

@@ -351,7 +351,7 @@
                         "symbol": "credit_score"
                       },
                       "val": {
-                        "u32": 40
+                        "u32": 42
                       }
                     },
                     {
@@ -515,7 +515,7 @@
                         "symbol": "credit_score"
                       },
                       "val": {
-                        "u32": 40
+                        "u32": 41
                       }
                     },
                     {
@@ -1017,7 +1017,7 @@
                                     "symbol": "credit_score"
                                   },
                                   "val": {
-                                    "u32": 40
+                                    "u32": 42
                                   }
                                 },
                                 {
@@ -1056,7 +1056,7 @@
                                     "symbol": "credit_score"
                                   },
                                   "val": {
-                                    "u32": 40
+                                    "u32": 41
                                   }
                                 },
                                 {
@@ -1087,12 +1087,39 @@
                         "key": {
                           "vec": [
                             {
+                              "symbol": "MinTipAmount"
+                            }
+                          ]
+                        },
+                        "val": {
+                          "i128": {
+                            "hi": 0,
+                            "lo": 1000000
+                          }
+                        }
+                      },
+                      {
+                        "key": {
+                          "vec": [
+                            {
                               "symbol": "NativeToken"
                             }
                           ]
                         },
                         "val": {
                           "address": "CBUSYNQKASUYFWYC3M2GUEDMX4AIVWPALDBYJPNK6554BREHTGZ2IUNF"
+                        }
+                      },
+                      {
+                        "key": {
+                          "vec": [
+                            {
+                              "symbol": "Paused"
+                            }
+                          ]
+                        },
+                        "val": {
+                          "bool": false
                         }
                       },
                       {
@@ -2386,7 +2413,7 @@
                         "symbol": "credit_score"
                       },
                       "val": {
-                        "u32": 40
+                        "u32": 41
                       }
                     },
                     {
@@ -2757,7 +2784,7 @@
                         "symbol": "credit_score"
                       },
                       "val": {
-                        "u32": 40
+                        "u32": 42
                       }
                     },
                     {
@@ -2796,7 +2823,7 @@
                         "symbol": "credit_score"
                       },
                       "val": {
-                        "u32": 40
+                        "u32": 41
                       }
                     },
                     {

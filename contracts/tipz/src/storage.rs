@@ -13,6 +13,7 @@
 
 use soroban_sdk::{contracttype, Address, Env, String};
 
+use crate::errors::ContractError;
 use crate::types::Profile;
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -63,6 +64,10 @@ pub enum DataKey {
     Initialized,
     /// Native XLM token contract address (SAC)
     NativeToken,
+    /// Emergency pause flag
+    Paused,
+    /// Minimum allowed tip amount in stroops
+    MinTipAmount,
 }
 
 /// Extend the contract instance TTL when a write transaction starts.
@@ -114,6 +119,42 @@ pub fn set_native_token(env: &Env, addr: &Address) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Pause state
+// ──────────────────────────────────────────────────────────────────────────────
+
+/// Returns `true` when the contract is paused.
+pub fn is_paused(env: &Env) -> bool {
+    env.storage()
+        .instance()
+        .get(&DataKey::Paused)
+        .unwrap_or(false)
+}
+
+/// Sets the paused flag.
+pub fn set_paused(env: &Env, paused: bool) {
+    env.storage().instance().set(&DataKey::Paused, &paused);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Minimum tip amount
+// ──────────────────────────────────────────────────────────────────────────────
+
+/// Returns the minimum allowed tip amount in stroops.
+pub fn get_min_tip_amount(env: &Env) -> i128 {
+    env.storage()
+        .instance()
+        .get(&DataKey::MinTipAmount)
+        .unwrap_or(0_i128)
+}
+
+/// Sets the minimum allowed tip amount in stroops.
+pub fn set_min_tip_amount(env: &Env, amount: i128) {
+    env.storage()
+        .instance()
+        .set(&DataKey::MinTipAmount, &amount);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Admin
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -158,7 +199,6 @@ pub fn set_version(env: &Env, version: u32) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 /// Returns the withdrawal fee in basis points (100 bps = 1 %).
-#[allow(dead_code)]
 pub fn get_fee_bps(env: &Env) -> u32 {
     env.storage()
         .instance()
@@ -295,11 +335,16 @@ pub fn get_total_tips_volume(env: &Env) -> i128 {
 }
 
 /// Adds `amount` stroops to the lifetime tip volume.
-pub fn add_to_tips_volume(env: &Env, amount: i128) {
+pub fn add_to_tips_volume(env: &Env, amount: i128) -> Result<(), ContractError> {
     let volume = get_total_tips_volume(env);
+    // Security: fail closed on arithmetic overflow.
+    let next = volume
+        .checked_add(amount)
+        .ok_or(ContractError::OverflowError)?;
     env.storage()
         .instance()
-        .set(&DataKey::TotalTipsVolume, &(volume + amount));
+        .set(&DataKey::TotalTipsVolume, &next);
+    Ok(())
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -307,7 +352,6 @@ pub fn add_to_tips_volume(env: &Env, amount: i128) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 /// Returns the lifetime total fees collected in stroops.
-#[allow(dead_code)]
 pub fn get_total_fees(env: &Env) -> i128 {
     env.storage()
         .instance()
@@ -317,11 +361,14 @@ pub fn get_total_fees(env: &Env) -> i128 {
 
 /// Adds `fee` stroops to the lifetime fees collected.
 #[allow(dead_code)]
-pub fn add_to_fees(env: &Env, fee: i128) {
+pub fn add_to_fees(env: &Env, fee: i128) -> Result<(), ContractError> {
     let total = get_total_fees(env);
+    // Security: fail closed on arithmetic overflow.
+    let next = total.checked_add(fee).ok_or(ContractError::OverflowError)?;
     env.storage()
         .instance()
-        .set(&DataKey::TotalFeesCollected, &(total + fee));
+        .set(&DataKey::TotalFeesCollected, &next);
+    Ok(())
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -559,8 +606,8 @@ mod tests {
     fn add_to_tips_volume_accumulates() {
         let (env, id) = make_env();
         env.as_contract(&id, || {
-            add_to_tips_volume(&env, 1_000_000);
-            add_to_tips_volume(&env, 2_000_000);
+            add_to_tips_volume(&env, 1_000_000).unwrap();
+            add_to_tips_volume(&env, 2_000_000).unwrap();
             assert_eq!(get_total_tips_volume(&env), 3_000_000);
         });
     }
@@ -579,8 +626,8 @@ mod tests {
     fn add_to_fees_accumulates() {
         let (env, id) = make_env();
         env.as_contract(&id, || {
-            add_to_fees(&env, 500);
-            add_to_fees(&env, 300);
+            add_to_fees(&env, 500).unwrap();
+            add_to_fees(&env, 300).unwrap();
             assert_eq!(get_total_fees(&env), 800);
         });
     }

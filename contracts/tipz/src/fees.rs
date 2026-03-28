@@ -44,6 +44,8 @@ pub fn calculate_fee(amount: i128, fee_bps: u32) -> Result<(i128, i128), Contrac
         .checked_sub(fee)
         .ok_or(ContractError::OverflowError)?;
 
+    debug_assert_eq!(fee + net, amount);
+
     Ok((fee, net))
 }
 
