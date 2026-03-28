@@ -441,3 +441,89 @@ fn test_transfer_xlm_contract_can_release_xlm() {
     assert_eq!(token_client.balance(&recipient), 30_000_000);
     assert_eq!(token_client.balance(&contract_id), 50_000_000);
 }
+
+// ── get_tips_by_tipper ──────────────────────────────────────────────────────
+
+#[test]
+fn test_get_tips_by_tipper_returns_correct_tips() {
+    let (env, client, _contract_id, tipper, creator, _sac) = setup_env();
+
+    let msg1 = String::from_str(&env, "tip 1");
+    let msg2 = String::from_str(&env, "tip 2");
+    let msg3 = String::from_str(&env, "tip 3");
+
+    client.send_tip(&tipper, &creator, &10_000_000, &msg1);
+    client.send_tip(&tipper, &creator, &20_000_000, &msg2);
+    client.send_tip(&tipper, &creator, &30_000_000, &msg3);
+
+    let tips = client.get_tips_by_tipper(&tipper, &10);
+    assert_eq!(tips.len(), 3);
+
+    // Reverse chronological order: newest first
+    assert_eq!(tips.get(0).unwrap().amount, 30_000_000);
+    assert_eq!(tips.get(1).unwrap().amount, 20_000_000);
+    assert_eq!(tips.get(2).unwrap().amount, 10_000_000);
+}
+
+#[test]
+fn test_get_tips_by_tipper_respects_limit() {
+    let (env, client, _contract_id, tipper, creator, _sac) = setup_env();
+
+    let msg = String::from_str(&env, "tip");
+    client.send_tip(&tipper, &creator, &10_000_000, &msg);
+    client.send_tip(&tipper, &creator, &20_000_000, &msg);
+    client.send_tip(&tipper, &creator, &30_000_000, &msg);
+
+    let tips = client.get_tips_by_tipper(&tipper, &2);
+    assert_eq!(tips.len(), 2);
+    // Most recent two
+    assert_eq!(tips.get(0).unwrap().amount, 30_000_000);
+    assert_eq!(tips.get(1).unwrap().amount, 20_000_000);
+}
+
+#[test]
+fn test_get_tips_by_tipper_empty_for_unknown() {
+    let (env, client, _contract_id, _tipper, _creator, _sac) = setup_env();
+
+    let stranger = Address::generate(&env);
+    let tips = client.get_tips_by_tipper(&stranger, &10);
+    assert_eq!(tips.len(), 0);
+}
+
+#[test]
+fn test_get_tipper_tip_count() {
+    let (env, client, _contract_id, tipper, creator, _sac) = setup_env();
+
+    assert_eq!(client.get_tipper_tip_count(&tipper), 0);
+
+    let msg = String::from_str(&env, "tip");
+    client.send_tip(&tipper, &creator, &10_000_000, &msg);
+    assert_eq!(client.get_tipper_tip_count(&tipper), 1);
+
+    client.send_tip(&tipper, &creator, &20_000_000, &msg);
+    assert_eq!(client.get_tipper_tip_count(&tipper), 2);
+}
+
+#[test]
+fn test_get_tips_by_tipper_isolates_tippers() {
+    let (env, client, _contract_id, tipper, creator, sac) = setup_env();
+
+    // Fund a second tipper
+    let tipper2 = Address::generate(&env);
+    let asset = token::StellarAssetClient::new(&env, &sac);
+    asset.mint(&tipper2, &100_000_000_000);
+
+    let msg = String::from_str(&env, "tip");
+    client.send_tip(&tipper, &creator, &10_000_000, &msg);
+    client.send_tip(&tipper2, &creator, &20_000_000, &msg);
+    client.send_tip(&tipper, &creator, &30_000_000, &msg);
+
+    let tips1 = client.get_tips_by_tipper(&tipper, &10);
+    assert_eq!(tips1.len(), 2);
+    assert_eq!(tips1.get(0).unwrap().amount, 30_000_000);
+    assert_eq!(tips1.get(1).unwrap().amount, 10_000_000);
+
+    let tips2 = client.get_tips_by_tipper(&tipper2, &10);
+    assert_eq!(tips2.len(), 1);
+    assert_eq!(tips2.get(0).unwrap().amount, 20_000_000);
+}

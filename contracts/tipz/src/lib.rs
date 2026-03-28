@@ -191,6 +191,20 @@ impl TipzContract {
         storage::get_tip_count(&env)
     }
 
+    /// Return up to `limit` recent tips sent by `tipper`, newest first.
+    ///
+    /// Expired tips are silently omitted, so the returned vector may contain
+    /// fewer than `limit` entries.
+    pub fn get_tips_by_tipper(env: Env, tipper: Address, limit: u32) -> Vec<Tip> {
+        tips::get_tips_by_tipper(&env, &tipper, limit)
+    }
+
+    /// Return the number of tips sent by `tipper` (within the ~7-day TTL
+    /// window tracked in temporary storage).
+    pub fn get_tipper_tip_count(env: Env, tipper: Address) -> u32 {
+        storage::get_tipper_tip_count(&env, &tipper)
+    }
+
     // ──────────────────────────────────────────────
     // Credit Score
     // ──────────────────────────────────────────────

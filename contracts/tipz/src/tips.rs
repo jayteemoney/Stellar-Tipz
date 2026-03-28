@@ -68,6 +68,33 @@ pub fn get_recent_tips(env: &Env, creator: &Address, count: u32) -> Vec<Tip> {
     result
 }
 
+/// Return up to `limit` recent tips sent by `tipper`, newest first.
+///
+/// Expired tips are silently skipped, so the returned vector may contain fewer
+/// than `limit` entries.
+pub fn get_tips_by_tipper(env: &Env, tipper: &Address, limit: u32) -> Vec<Tip> {
+    let count = storage::get_tipper_tip_count(env, tipper);
+    let mut result = Vec::new(env);
+    let mut found = 0_u32;
+    let mut index = count;
+
+    while index > 0 && found < limit {
+        index -= 1;
+        if let Some(tip_id) = env
+            .storage()
+            .temporary()
+            .get::<DataKey, u32>(&DataKey::TipperTip(tipper.clone(), index))
+        {
+            if let Some(tip) = get_tip(env, tip_id) {
+                result.push_back(tip);
+                found += 1;
+            }
+        }
+    }
+
+    result
+}
+
 /// Send an XLM tip from `tipper` to a registered `creator`.
 pub fn send_tip(
     env: &Env,
@@ -117,6 +144,7 @@ pub fn send_tip(
     leaderboard::update_leaderboard(env, &profile);
 
     let tip_id = store_tip(env, tipper, creator, amount, message.clone());
+    storage::add_tipper_tip(env, tipper, tip_id);
     let timestamp = env.ledger().timestamp();
 
     // Security: checked accumulation prevents silent i128 overflow.
