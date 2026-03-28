@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState } from "react";
 import { HeartHandshake, Wallet, ArrowRight } from "lucide-react";
 
 import Button from "../../components/ui/Button";
@@ -17,16 +17,6 @@ const TipForm: React.FC<TipFormProps> = ({ creator, onSubmit, isSubmitting = fal
   const { connected, connect } = useWallet();
   const [amount, setAmount] = useState("5");
   const [message, setMessage] = useState("");
-  const [wasSubmitting, setWasSubmitting] = useState(false);
-
-  // Reset form after successful submission
-  useEffect(() => {
-    if (wasSubmitting && !isSubmitting) {
-      setAmount("5");
-      setMessage("");
-    }
-    setWasSubmitting(isSubmitting);
-  }, [isSubmitting, wasSubmitting]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
