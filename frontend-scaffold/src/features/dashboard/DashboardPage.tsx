@@ -3,10 +3,8 @@ import { ArrowUpRight, Coins, LayoutDashboard, Wallet, QrCode } from 'lucide-rea
 import { Navigate, Link } from 'react-router-dom';
 
 import PageContainer from "../../components/layout/PageContainer";
-import AmountDisplay from "../../components/shared/AmountDisplay";
-import CreditBadge from "../../components/shared/CreditBadge";
-import TipCard from "../../components/shared/TipCard";
 import WalletConnect from "../../components/shared/WalletConnect";
+import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import EmptyState from "../../components/ui/EmptyState";
 import Pagination from "../../components/ui/Pagination";
@@ -59,7 +57,7 @@ const DashboardPage: React.FC = () => {
         <EmptyState
           icon={<Wallet />}
           title="Connect your wallet"
-          description="Connect a Stellar wallet to view your dashboard."
+          description="Connect a Stellar wallet to view your creator dashboard."
         />
       </PageContainer>
     );
@@ -68,10 +66,81 @@ const DashboardPage: React.FC = () => {
   const creator = profile || mockProfile;
   const displayTips = tips && tips.length > 0 ? tips : mockTips;
   const totalPages = Math.ceil(displayTips.length / 10) || 1;
+  if (!loading && !profile) {
+    return (
+      <PageContainer maxWidth="xl" className="space-y-8 py-10">
+        <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-500">
+              Creator dashboard
+            </p>
+            <h1 className="mt-2 flex items-center gap-3 text-4xl font-black uppercase">
+              <LayoutDashboard size={32} />
+              Dashboard
+            </h1>
+          </div>
+          <WalletConnect />
+        </section>
+        <EmptyState
+          icon={<LayoutDashboard />}
+          title="No creator profile yet"
+          description="Register a profile first to unlock your dashboard and withdrawal flow."
+        />
+        <div className="flex justify-center">
+          <Link to="/register">
+            <Button>Register now</Button>
+          </Link>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  const creator = profile ?? mockProfile;
+
+  const tabs = [
+    {
+      id: "overview",
+      label: "Overview",
+      content: <OverviewTab />,
+    },
+    {
+      id: "tips",
+      label: "Tips",
+      content: <TipsTab />,
+    },
+    {
+      id: "earnings",
+      label: "Earnings",
+      content: <EarningsTab profile={creator} stats={stats} loading={loading} />,
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      content: (
+        <div className="pt-6">
+          <Card className="space-y-4" padding="lg">
+            <div className="flex items-center gap-3">
+              <Settings size={22} />
+              <h2 className="text-2xl font-black uppercase">
+                Settings scaffold
+              </h2>
+            </div>
+            <p className="text-sm font-medium leading-6 text-gray-700">
+              Profile editing already lives in a dedicated flow. Additional
+              payout and notification settings will land here as the dashboard
+              evolves.
+            </p>
+            <Link to="/profile/edit">
+              <Button variant="outline">Edit profile</Button>
+            </Link>
+          </Card>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <PageContainer maxWidth="xl" className="space-y-8 py-10">
-      {/* Page header */}
       <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-500">
@@ -90,7 +159,10 @@ const DashboardPage: React.FC = () => {
                 <Button variant="outline" size="sm">View Public Profile</Button>
              </Link>
              <WalletConnect />
+            @{creator.username}
+          </p>
         </div>
+        <WalletConnect />
       </section>
 
       {/* Stats Overview */}
@@ -141,7 +213,7 @@ const DashboardPage: React.FC = () => {
             </div>
           )}
 
-          <Pagination currentPage={1} totalPages={totalPages} onPageChange={() => {}} />
+          <Pagination currentPage={1} totalPages={Math.ceil(mockTips.length / 3)} onPageChange={() => {}} />
         </Card>
       </div>
 
@@ -186,6 +258,7 @@ const DashboardPage: React.FC = () => {
           </Card>
         </div>
       </section>
+      <Tabs tabs={tabs} defaultTab="overview" />
     </PageContainer>
   );
 };
