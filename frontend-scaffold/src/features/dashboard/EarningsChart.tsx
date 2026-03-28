@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Coins } from "lucide-react";
 
-import Button from "../../components/ui/Button";
 import { stroopToXlm } from "../../helpers/format";
 import { Tip } from "../../types/contract";
 
@@ -20,11 +19,12 @@ const SECONDS_IN_DAY = 24 * 60 * 60;
 
 const EarningsChart: React.FC<EarningsChartProps> = ({ tips }) => {
   const [period, setPeriod] = useState<Period>("week");
+  const [anchorNowSec] = useState(() => Math.floor(Date.now() / 1000));
 
   const chartData = useMemo(() => {
     if (tips.length === 0) return [];
 
-    const now = Math.floor(Date.now() / 1000);
+    const now = anchorNowSec;
     const result: DataPoint[] = [];
 
     const xlmTips = tips.map(t => ({
@@ -83,7 +83,7 @@ const EarningsChart: React.FC<EarningsChartProps> = ({ tips }) => {
     }
 
     return result;
-  }, [tips, period]);
+  }, [tips, period, anchorNowSec]);
 
   const maxValue = Math.max(...chartData.map(d => d.value), 1);
 

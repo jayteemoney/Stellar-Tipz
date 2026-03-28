@@ -15,7 +15,6 @@ import { mockProfile } from "../mockData";
 import TipPageSkeleton from "./TipPageSkeleton";
 import TipAmountInput from "./TipAmountInput";
 import TipResult from "./TipResult";
-import CreatorNotFound from "./CreatorNotFound";
 import RecentTips from "./RecentTips";
 import TipConfirm from "./TipConfirm";
 import { useTipFlow } from "./useTipFlow";
@@ -52,10 +51,6 @@ const TipPage: React.FC = () => {
 
   if (loading) {
     return <TipPageSkeleton />;
-  }
-
-  if (creatorNotFound) {
-    return <CreatorNotFound username={username} />;
   }
 
   return (
