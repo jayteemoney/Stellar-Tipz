@@ -28,6 +28,7 @@ import { useDashboard } from "../../hooks/useDashboard";
 import { useWalletStore } from "../../store/walletStore";
 import { stroopToXlm } from "../../helpers/format";
 import BigNumber from "bignumber.js";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 // ---------------------------------------------------------------------------
 // Overview tab
@@ -407,6 +408,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ profile }) => {
 // Main DashboardPage
 // ---------------------------------------------------------------------------
 const DashboardPage: React.FC = () => {
+  usePageTitle('Dashboard');
+
   const { connected } = useWalletStore();
   const { profile, tips, stats, loading, error, refetch } = useDashboard();
 

@@ -16,6 +16,7 @@ import TipPageSkeleton from "./TipPageSkeleton";
 import TipAmountInput from "./TipAmountInput";
 import TipResult from "./TipResult";
 import { useTipFlow } from "./useTipFlow";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const TipPage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
@@ -36,6 +37,9 @@ const TipPage: React.FC = () => {
     ...mockProfile,
     username: username || mockProfile.username,
   };
+  
+  usePageTitle(`Tip @${creator.username}`);
+
   const { step, goToConfirm, confirmAndSign, reset, error, txHash } = useTipFlow(creator.owner);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
