@@ -1543,6 +1543,9 @@
             "data": {
               "vec": [
                 {
+                  "u32": 0
+                },
+                {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOLZM"
                 },
                 {
@@ -1553,6 +1556,12 @@
                     "hi": 0,
                     "lo": 10000000
                   }
+                },
+                {
+                  "string": "Great work!"
+                },
+                {
+                  "u64": 0
                 }
               ]
             }

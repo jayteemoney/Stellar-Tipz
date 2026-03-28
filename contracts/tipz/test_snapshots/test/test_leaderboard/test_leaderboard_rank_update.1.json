@@ -2061,6 +2061,9 @@
             "data": {
               "vec": [
                 {
+                  "u32": 0
+                },
+                {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDR4"
                 },
                 {
@@ -2071,6 +2074,12 @@
                     "hi": 0,
                     "lo": 50000000
                   }
+                },
+                {
+                  "string": ""
+                },
+                {
+                  "u64": 0
                 }
               ]
             }
@@ -2304,6 +2313,9 @@
             "data": {
               "vec": [
                 {
+                  "u32": 1
+                },
+                {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDR4"
                 },
                 {
@@ -2314,6 +2326,12 @@
                     "hi": 0,
                     "lo": 10000000
                   }
+                },
+                {
+                  "string": ""
+                },
+                {
+                  "u64": 0
                 }
               ]
             }
@@ -2675,6 +2693,9 @@
             "data": {
               "vec": [
                 {
+                  "u32": 2
+                },
+                {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDR4"
                 },
                 {
@@ -2685,6 +2706,12 @@
                     "hi": 0,
                     "lo": 100000000
                   }
+                },
+                {
+                  "string": ""
+                },
+                {
+                  "u64": 0
                 }
               ]
             }

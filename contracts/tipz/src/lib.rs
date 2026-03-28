@@ -181,6 +181,16 @@ impl TipzContract {
         tips::get_recent_tips(&env, &creator, count)
     }
 
+    /// Return the total number of tips ever sent (monotonically increasing).
+    ///
+    /// This counter lives in instance storage and never expires, unlike
+    /// individual tip records which have a ~7-day TTL. Use this together with
+    /// `TipSent` events to reconstruct full tip history via an off-chain
+    /// indexer.
+    pub fn get_tip_count(env: Env) -> u32 {
+        storage::get_tip_count(&env)
+    }
+
     // ──────────────────────────────────────────────
     // Credit Score
     // ──────────────────────────────────────────────

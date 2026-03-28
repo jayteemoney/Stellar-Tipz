@@ -116,12 +116,13 @@ pub fn send_tip(
     storage::set_profile(env, &profile);
     leaderboard::update_leaderboard(env, &profile);
 
-    store_tip(env, tipper, creator, amount, message.clone());
+    let tip_id = store_tip(env, tipper, creator, amount, message.clone());
+    let timestamp = env.ledger().timestamp();
 
     // Security: checked accumulation prevents silent i128 overflow.
     storage::add_to_tips_volume(env, amount)?;
 
-    emit_tip_sent(env, tipper, creator, amount);
+    emit_tip_sent(env, tip_id, tipper, creator, amount, message, timestamp);
 
     Ok(())
 }

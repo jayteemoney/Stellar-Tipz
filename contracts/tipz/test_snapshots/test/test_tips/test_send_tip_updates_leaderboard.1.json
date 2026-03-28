@@ -1876,6 +1876,9 @@
             "data": {
               "vec": [
                 {
+                  "u32": 0
+                },
+                {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOLZM"
                 },
                 {
@@ -1886,6 +1889,12 @@
                     "hi": 0,
                     "lo": 200000000
                   }
+                },
+                {
+                  "string": "tip"
+                },
+                {
+                  "u64": 0
                 }
               ]
             }
@@ -2119,6 +2128,9 @@
             "data": {
               "vec": [
                 {
+                  "u32": 1
+                },
+                {
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOLZM"
                 },
                 {
@@ -2129,6 +2141,12 @@
                     "hi": 0,
                     "lo": 100000000
                   }
+                },
+                {
+                  "string": "tip"
+                },
+                {
+                  "u64": 0
                 }
               ]
             }
