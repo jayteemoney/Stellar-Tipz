@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import type { Profile } from "../../types";
 import Button from "../../components/ui/Button";
+import { getExplorerTxUrl } from "../../helpers/network";
 
 interface TipResultProps {
   status: "success" | "error";
@@ -12,8 +13,6 @@ interface TipResultProps {
   errorMessage?: string;
   onPrimaryAction?: () => void;
 }
-
-const explorerBase = "https://stellar.expert/explorer/testnet/tx/";
 
 const TipResult: React.FC<TipResultProps> = ({
   status,
@@ -53,7 +52,7 @@ const TipResult: React.FC<TipResultProps> = ({
             </p>
             {txHash && (
               <a
-                href={`${explorerBase}${txHash}`}
+                href={getExplorerTxUrl(txHash)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex text-sm font-black uppercase underline"
