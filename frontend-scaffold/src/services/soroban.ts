@@ -42,7 +42,7 @@ export const accountToScVal = (account: string) =>
   new Address(account).toScVal();
 
 // Can be used whenever you need an i128 argument for a contract method
-export const numberToI128 = (value: number): xdr.ScVal =>
+export const numberToI128 = (value: number | bigint): xdr.ScVal =>
   nativeToScVal(value, { type: "i128" });
 
 // Get a server configured for a specific network
@@ -284,8 +284,8 @@ export const getEstimatedFee = async (
   // 'classic' tx fees are measured as the product of tx.fee * 'number of operations', In soroban contract tx,
   // there can only be single operation in the tx, so can make simplification
   // of total classic fees for the soroban transaction will be equal to incoming tx.fee + minResourceFee.
-  const classicFeeNum = parseInt(raw.fee, 10) || 0;
-  const minResourceFeeNum = parseInt(simResponse.minResourceFee, 10) || 0;
+  const classicFeeNum = BigInt(raw.fee || "0");
+  const minResourceFeeNum = BigInt(simResponse.minResourceFee || "0");
   const fee = (classicFeeNum + minResourceFeeNum).toString();
   return fee;
 };
