@@ -30,6 +30,15 @@ pub fn emit_profile_updated(env: &Env, owner: &Address) {
     );
 }
 
+/// Topics : `("profile", "deregist")`
+/// Data   : `(owner: Address, username: String)`
+pub fn emit_profile_deregistered(env: &Env, owner: &Address, username: &String) {
+    env.events().publish(
+        (symbol_short!("profile"), symbol_short!("deregist")),
+        (owner.clone(), username.clone()),
+    );
+}
+
 // ── Tip events ────────────────────────────────────────────────────────────────
 
 /// Topics : `("tip", "sent")`
