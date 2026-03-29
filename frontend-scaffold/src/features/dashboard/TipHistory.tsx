@@ -5,6 +5,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
 import Table from '@/components/ui/Table';
 import { truncateString } from '@/helpers/format';
+import { getExplorerTxUrl } from '@/helpers/network';
 import { useTips } from '../../hooks/useTips';
 import { useWalletStore } from '../../store/walletStore';
 import Loader from '../../components/ui/Loader';
@@ -75,9 +76,14 @@ const TipHistory: React.FC = () => {
       amount: (Number(tip.amount) / 1e7).toFixed(2),
       message: tip.message || 'No message',
       txHash: (
-        <span className="font-mono text-xs text-gray-400">
+        <a
+          href={getExplorerTxUrl(txHash)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono text-xs text-blue-500 hover:text-blue-700 underline"
+        >
           {truncateString(txHash)}
-        </span>
+        </a>
       ),
       txHashRaw: txHash,
     };

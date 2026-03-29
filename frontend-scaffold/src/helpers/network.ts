@@ -13,6 +13,31 @@ export const TESTNET_DETAILS = {
   networkPassphrase: env.networkPassphrase,
 };
 
+/**
+ * Returns the Stellar Expert explorer URL for a transaction based on the current network
+ * @param hash - Transaction hash
+ * @param network - Network type (TESTNET, FUTURENET, MAINNET). Defaults to env.network
+ * @returns Full URL to the explorer
+ */
+export const getExplorerTxUrl = (
+  hash: string,
+  network: string = env.network,
+): string => {
+  const baseUrl = "https://stellar.expert/explorer";
+  
+  switch (network.toUpperCase()) {
+    case "TESTNET":
+      return `${baseUrl}/testnet/tx/${hash}`;
+    case "FUTURENET":
+      return `${baseUrl}/futurenet/tx/${hash}`;
+    case "MAINNET":
+    case "PUBLIC":
+      return `${baseUrl}/public/tx/${hash}`;
+    default:
+      return `${baseUrl}/testnet/tx/${hash}`;
+  }
+};
+
 export const signTx = async (
   xdr: string,
   publicKey: string,
