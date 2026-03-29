@@ -5,18 +5,13 @@ import AmountDisplay from "../../components/shared/AmountDisplay";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import EmptyState from "../../components/ui/EmptyState";
+import { useDashboard } from "../../hooks/useDashboard";
 import { formatTimestamp } from "../../helpers/format";
-import type { ContractStats, Profile } from "../../types";
-import { mockTips } from "../mockData";
 import BalanceCard from "./BalanceCard";
 import EarningsChart from "./EarningsChart";
 import WithdrawModal from "./WithdrawModal";
-
-interface EarningsTabProps {
-  profile: Profile;
-  stats: ContractStats | null;
-  loading?: boolean;
-}
+import Loader from "../../components/ui/Loader";
+import { Tip } from "../../types/contract";
 
 interface WithdrawalHistoryItem {
   id: string;
@@ -26,16 +21,16 @@ interface WithdrawalHistoryItem {
   net: string;
 }
 
-const EarningsTab: React.FC<EarningsTabProps> = ({
-  profile,
-  stats,
-  loading = false,
-}) => {
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const feeBps = stats?.feeBps ?? 200;
+const DEFAULT_FEE_BPS = 200;
 
+const EarningsTab: React.FC = () => {
+  const { profile, tips, stats, loading } = useDashboard();
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const feeBps = stats?.feeBps ?? DEFAULT_FEE_BPS;
+
+  // Manual calculation for withdrawal history based on tips (placeholder logic since contract doesn't return withdrawals yet)
   const withdrawals = useMemo<WithdrawalHistoryItem[]>(() => {
-    return mockTips.slice(0, 4).map((tip, index) => {
+    return tips.slice(0, 4).map((tip: Tip, index: number) => {
       const gross = BigInt(tip.amount) * BigInt(index + 2);
       const fee = (gross * BigInt(feeBps)) / BigInt(10_000);
       const net = gross - fee;
@@ -48,17 +43,17 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
         net: net.toString(),
       };
     });
-  }, [feeBps]);
+  }, [tips, feeBps]);
 
-  if (loading) {
+  if (loading && !profile) {
     return (
-      <Card className="space-y-3">
-        <p className="text-sm font-bold text-gray-600">
-          Loading earnings dashboard...
-        </p>
-      </Card>
+      <div className="flex justify-center py-20">
+        <Loader size="lg" text="Loading earnings..." />
+      </div>
     );
   }
+
+  if (!profile) return null;
 
   return (
     <div className="space-y-6 pt-6">
@@ -83,7 +78,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
             Withdrawals enabled
           </div>
         </div>
-        <EarningsChart tips={mockTips} />
+        <EarningsChart tips={tips} />
       </Card>
 
       <Card padding="lg" className="space-y-5">

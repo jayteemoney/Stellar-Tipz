@@ -14,8 +14,8 @@ export const mockProfile: Profile = {
   totalTipsReceived: "2845000000",
   totalTipsCount: 126,
   balance: "1294000000",
-  registeredAt: 1734307200000,
-  updatedAt: 1741824000000,
+  registeredAt: 1734307200,
+  updatedAt: 1741824000,
 };
 
 export const mockTips: Tip[] = [
