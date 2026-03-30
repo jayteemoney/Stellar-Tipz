@@ -9,7 +9,7 @@
 ### `initialize`
 
 ```rust
-fn initialize(env: Env, admin: Address, fee_collector: Address, fee_bps: u32)
+fn initialize(env: Env, admin: Address, fee_collector: Address, fee_bps: u32, native_token: Address)
 ```
 
 | Param | Type | Description |
@@ -17,6 +17,7 @@ fn initialize(env: Env, admin: Address, fee_collector: Address, fee_bps: u32)
 | `admin` | `Address` | Contract administrator |
 | `fee_collector` | `Address` | Receives withdrawal fees |
 | `fee_bps` | `u32` | Fee in basis points (200 = 2%) |
+| `native_token` | `Address` | Stellar Asset Contract address for native XLM |
 
 **Auth**: None (first call only)  
 **Errors**: `AlreadyInitialized`
