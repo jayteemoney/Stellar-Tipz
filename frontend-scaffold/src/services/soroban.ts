@@ -116,6 +116,7 @@ export const submitTx = async (
   signedXDR: string,
   networkPassphrase: string,
   server: SorobanRpc.Server,
+  timeoutSeconds: number = 60,
 ) => {
   const tx = TransactionBuilder.fromXDR(signedXDR, networkPassphrase);
 
@@ -127,10 +128,19 @@ export const submitTx = async (
 
   if (sendResponse.status === SendTxStatus.Pending) {
     let txResponse = await server.getTransaction(sendResponse.hash);
+    const startTime = Date.now();
+    const timeoutMs = timeoutSeconds * 1000;
 
     while (
       txResponse.status === SorobanRpc.Api.GetTransactionStatus.NOT_FOUND
     ) {
+      // Check if timeout exceeded
+      if (Date.now() - startTime > timeoutMs) {
+        throw new Error(
+          `Transaction polling timeout after ${timeoutSeconds} seconds. Hash: ${sendResponse.hash}`
+        );
+      }
+
       // See if the transaction is complete
       txResponse = await server.getTransaction(sendResponse.hash);
       // Wait a second
