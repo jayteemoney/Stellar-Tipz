@@ -161,6 +161,7 @@ describe("useWallet", () => {
   });
 
   it("should sign transaction", async () => {
+    vi.useFakeTimers();
     const mockXdr = "AAAAAgAAAAA=";
     const mockSignedXdr = "AAAAAwAAAAA=";
 
@@ -185,5 +186,11 @@ describe("useWallet", () => {
     expect(mockWalletKit.signTransaction).toHaveBeenCalledWith(mockXdr, {
       address: "GD1234567890ABCDEF",
     });
+
+    await act(async () => {
+      vi.runAllTimers();
+    });
+    
+    vi.useRealTimers();
   });
 });
