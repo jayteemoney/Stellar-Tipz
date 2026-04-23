@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Heart } from "lucide-react";
 
 import AmountDisplay from "../../components/shared/AmountDisplay";
 import CreditBadge from "../../components/shared/CreditBadge";
@@ -7,6 +8,7 @@ import Avatar from "../../components/ui/Avatar";
 import Skeleton from "../../components/ui/Skeleton";
 import { useWalletStore } from "../../store";
 import type { LeaderboardEntry } from "../../types/contract";
+import { useFavorites } from "../../hooks/useFavorites";
 
 export interface LeaderboardRowProps {
   entry: LeaderboardEntry;
@@ -16,6 +18,8 @@ export interface LeaderboardRowProps {
 const LeaderboardRow: React.FC<LeaderboardRowProps> = ({ entry, rank }) => {
   const navigate = useNavigate();
   const { connected, publicKey } = useWalletStore();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorite = isFavorite(entry.address);
 
   const isOwnProfile =
     connected && Boolean(publicKey) && publicKey?.toLowerCase() === entry.address.toLowerCase();
@@ -52,7 +56,23 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({ entry, rank }) => {
             fallback={entry.username}
             size="md"
           />
-          <span className="font-black uppercase">{entry.username}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-black uppercase">{entry.username}</span>
+            {!isOwnProfile && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite({ address: entry.address, username: entry.username });
+                }}
+                className={`p-1 rounded-full transition-colors ${
+                  favorite ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-red-500 hover:bg-gray-100'
+                }`}
+                aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
+              >
+                <Heart size={16} fill={favorite ? "currentColor" : "none"} />
+              </button>
+            )}
+          </div>
           {isOwnProfile && (
             <span className="border-2 border-black bg-black px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
               You
