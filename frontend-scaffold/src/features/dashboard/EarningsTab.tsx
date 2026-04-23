@@ -147,6 +147,7 @@ const EarningsTab: React.FC = () => {
         isOpen={withdrawOpen}
         balance={profile.balance}
         feeBps={feeBps}
+        minWithdrawal={10}
         onClose={() => setWithdrawOpen(false)}
       />
     </div>

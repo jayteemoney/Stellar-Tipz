@@ -155,6 +155,7 @@ const OverviewTab: React.FC = () => {
         isOpen={withdrawOpen}
         balance={profile.balance}
         feeBps={stats?.feeBps || 200}
+        minWithdrawal={10}
         onClose={() => setWithdrawOpen(false)}
       />
     </div>

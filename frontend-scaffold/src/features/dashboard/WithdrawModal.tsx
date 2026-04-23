@@ -12,6 +12,7 @@ interface WithdrawModalProps {
   isOpen: boolean;
   balance: string;
   feeBps: number;
+  minWithdrawal?: number | string;
   onClose: () => void;
 }
 
@@ -19,6 +20,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({
   isOpen,
   balance,
   feeBps,
+  minWithdrawal,
   onClose,
 }) => {
   const { withdrawTips, withdrawing, error, txHash, reset } = useTipz();
@@ -58,12 +60,19 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({
       return "Withdrawal amount must be greater than zero.";
     }
 
+    if (minWithdrawal !== undefined) {
+      const minWNumber = new BigNumber(minWithdrawal);
+      if (parsedAmount.lt(minWNumber)) {
+        return `Minimum withdrawal amount is ${minWithdrawal} XLM.`;
+      }
+    }
+
     if (parsedAmount.gt(balanceXlm)) {
       return "Withdrawal amount cannot exceed your available balance.";
     }
 
     return null;
-  }, [amount, parsedAmount, balanceXlm]);
+  }, [amount, parsedAmount, balanceXlm, minWithdrawal]);
 
   const requestedStroops = useMemo(() => {
     if (!parsedAmount || amountError) {

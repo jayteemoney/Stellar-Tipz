@@ -113,3 +113,8 @@ export const formatTokenAmount = (amount: BigNumber, decimals: number) => {
 
   return formatted;
 };
+
+export const formatXlmDisplay = (value: BigNumber): string => {
+  const decimalPlaces = value.decimalPlaces() ?? 0;
+  return value.toFormat(Math.min(7, Math.max(2, decimalPlaces)));
+};

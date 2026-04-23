@@ -1,70 +1,106 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import PageContainer from '@/components/layout/PageContainer';
-import Loader from '@/components/ui/Loader';
-import { useProfile } from '@/hooks';
-import EditProfileForm from './EditProfileForm';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import AvatarUpload from './AvatarUpload';
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+
+import PageContainer from "../../components/layout/PageContainer";
+import Button from "../../components/ui/Button";
+import Card from "../../components/ui/Card";
+import Loader from "../../components/ui/Loader";
+import ErrorBoundary from "../../components/shared/ErrorBoundary";
+import ErrorState from "../../components/shared/ErrorState";
+import { useProfile } from "../../hooks/useProfile";
+import { usePageTitle } from "../../hooks/usePageTitle";
+import { categorizeError } from "../../helpers/error";
+import EditProfileForm from "./EditProfileForm";
 
 const ProfileEditPage: React.FC = () => {
   const navigate = useNavigate();
-  const { profile, isRegistered, loading } = useProfile();
-  const [ipfsHash, setIpfsHash] = useState<string>('');
+  const { profile, loading, error, isRegistered, refetch } = useProfile();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  React.useEffect(() => {
-    if (!loading && (!isRegistered || !profile)) {
-      navigate('/profile', { replace: true });
+  usePageTitle(
+    loading
+      ? "Loading Profile..."
+      : profile
+      ? `Edit ${profile.displayName}`
+      : "Edit Profile",
+  );
+
+  // Redirect to register if no profile exists after loading completes
+  useEffect(() => {
+    if (!loading && !isRegistered) {
+      navigate("/register", { replace: true });
     }
-  }, [isRegistered, profile, loading, navigate]);
+  }, [loading, isRegistered, navigate]);
+
+  // Warn user about unsaved changes when navigating away
+  const handleBeforeUnload = useCallback(
+    (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+      }
+    },
+    [hasUnsavedChanges],
+  );
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [handleBeforeUnload]);
 
   if (loading) {
     return (
-      <PageContainer maxWidth="md" className="flex items-center justify-center min-h-[60vh]">
-        <Loader />
+      <PageContainer maxWidth="md" className="py-20">
+        <div
+          data-testid="profile-skeleton"
+          className="flex flex-col items-center justify-center gap-4"
+        >
+          <Loader size="lg" text="Loading profile data..." />
+        </div>
       </PageContainer>
     );
   }
 
-  if (!isRegistered || !profile) {
+  if (error) {
+    return (
+      <PageContainer maxWidth="md" className="py-20">
+        <ErrorState category={categorizeError(error)} onRetry={refetch} />
+      </PageContainer>
+    );
+  }
+
+  if (!profile) {
     return null;
   }
 
   return (
     <ErrorBoundary>
       <PageContainer maxWidth="md" className="space-y-6 py-10">
-        <div>
-          <button
-            onClick={() => navigate('/profile')}
-            className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide hover:underline transition-all"
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/profile")}
+            icon={<ArrowLeft size={18} />}
           >
-            <ArrowLeft size={16} />
             Back to Profile
-          </button>
+          </Button>
         </div>
 
-        <div>
-          <h1 className="text-4xl font-black mb-2">Edit Profile</h1>
-          <p className="text-gray-600">
-            Update your profile information and upload a new avatar.
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-black uppercase">Edit Profile</h1>
+          <p className="text-sm font-bold text-gray-600">
+            Update your creator profile details below.
           </p>
         </div>
 
-        <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold mb-4">Profile Picture</h2>
-          <AvatarUpload 
-            defaultImage={profile.imageUrl} 
-            onUploadSuccess={(hash) => setIpfsHash(hash)} 
+        <Card padding="lg" className="border-4 shadow-brutalist">
+          <EditProfileForm
+            profile={profile}
+            onDirtyChange={setHasUnsavedChanges}
           />
-          {ipfsHash && (
-            <p className="text-sm text-green-600 mt-2 text-center">
-              Image uploaded! Click Save Changes below to update your profile.
-            </p>
-          )}
-        </div>
-
-        <EditProfileForm profile={profile} uploadedImageUrl={ipfsHash} />
+        </Card>
       </PageContainer>
     </ErrorBoundary>
   );
