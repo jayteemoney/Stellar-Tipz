@@ -17,6 +17,7 @@ import { stroopToXlm } from "@/helpers/format";
 import TipQRCode from "@/features/profile/TipQRCode";
 import Skeleton from "@/components/ui/Skeleton";
 import DashboardStatsSkeleton from "./DashboardStatsSkeleton";
+import EarningsChart from "./EarningsChart";
 
 import EarningsTab from "./EarningsTab";
 import OverviewTab from "./OverviewTab";
@@ -129,6 +130,11 @@ const DashboardPage: React.FC = () => {
       label: "Overview",
       content: (
         <div className="pt-6">
+          <div className="space-y-8">
+            <OverviewTab />
+            <div className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <EarningsChart tips={tips} />
+            </div>
           <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
             <OverviewTab />
             <TipQRCode username={creator.username} />
