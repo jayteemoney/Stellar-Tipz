@@ -7,6 +7,7 @@ mod test_credit;
 mod test_deregister;
 mod test_donation_page;
 mod test_events;
+mod test_fuzz;
 mod test_init;
 mod test_integration;
 mod test_integration_advanced;

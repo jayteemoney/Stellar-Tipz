@@ -13,6 +13,7 @@ use crate::leaderboard;
 use crate::storage::{self, DataKey};
 use crate::token;
 use crate::types::Tip;
+use crate::validation::{validate_message, validate_tip_amount};
 
 /// Create a new [`Tip`] record and store it in temporary storage.
 pub fn store_tip(
@@ -138,18 +139,9 @@ pub fn send_tip(
         return Err(ContractError::CannotTipSelf);
     }
 
-    if amount <= 0 {
-        return Err(ContractError::InvalidAmount);
-    }
-
     let min_tip = storage::get_min_tip_amount(env);
-    if amount < min_tip {
-        return Err(ContractError::TipBelowMinimum);
-    }
-
-    if message.len() > 280 {
-        return Err(ContractError::MessageTooLong);
-    }
+    validate_tip_amount(amount, min_tip)?;
+    validate_message(message)?;
 
     let contract_address = env.current_contract_address();
     // Security: native SAC transfer has no callback path into this contract.
@@ -182,7 +174,16 @@ pub fn send_tip(
     crate::stats::update_24h_stats(env, amount);
     crate::stats::mark_creator_active(env, creator);
 
-    emit_tip_sent(env, tip_id, tipper, creator, amount, message, timestamp, is_anonymous);
+    emit_tip_sent(
+        env,
+        tip_id,
+        tipper,
+        creator,
+        amount,
+        message,
+        timestamp,
+        is_anonymous,
+    );
 
     Ok(())
 }

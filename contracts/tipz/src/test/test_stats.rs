@@ -203,12 +203,12 @@ fn test_platform_stats_multiple_creators() {
     let tipper = Address::generate(&env);
 
     let client = setup_test_contract(&env, &admin);
+    let usernames = ["creator0", "creator1", "creator2", "creator3", "creator4"];
 
     // Register multiple creators and send tips
     for i in 0..5 {
         let creator = Address::generate(&env);
-        let username = format!("creator{}", i);
-        register_creator(&client, &env, &creator, &username);
+        register_creator(&client, &env, &creator, usernames[i]);
 
         client.send_tip(
             &tipper,

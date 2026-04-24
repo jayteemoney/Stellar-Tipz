@@ -1,10 +1,12 @@
 //! Tests for multi-signature admin operations
 
-use soroban_sdk::{testutils::Address as _, vec, Address, Env};
+use soroban_sdk::{
+    testutils::{Address as _, Ledger},
+    vec, Address, Env,
+};
 
 use crate::multisig::Action;
 use crate::test::test_init::setup_test_contract;
-use crate::TipzContractClient;
 
 #[test]
 fn test_multisig_pause() {
