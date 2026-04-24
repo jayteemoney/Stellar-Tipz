@@ -4,12 +4,12 @@
 
 use soroban_sdk::{
     testutils::{Address as _, Events},
-    vec, Address, Env, String,
+    vec, Address, Env, Map, String, Symbol,
 };
 
 use crate::errors::ContractError;
 use crate::storage::{self, DataKey};
-use crate::types::{BatchSkip, Profile};
+use crate::types::{BatchSkip, Profile, VerificationStatus, VerificationType};
 use crate::TipzContract;
 use crate::TipzContractClient;
 
@@ -57,7 +57,9 @@ fn insert_profile(ctx: &TestCtx, owner: &Address) {
         username: String::from_str(&ctx.env, "user"),
         display_name: String::from_str(&ctx.env, "User"),
         bio: String::from_str(&ctx.env, ""),
+        website: String::from_str(&ctx.env, ""),
         image_url: String::from_str(&ctx.env, ""),
+        social_links: Map::<Symbol, String>::new(&ctx.env),
         x_handle: String::from_str(&ctx.env, ""),
         x_followers: 0,
         x_engagement_avg: 0,
@@ -67,6 +69,12 @@ fn insert_profile(ctx: &TestCtx, owner: &Address) {
         balance: 0,
         registered_at: now,
         updated_at: now,
+        verification: VerificationStatus {
+            is_verified: false,
+            verification_type: VerificationType::Unverified,
+            verified_at: None,
+            revoked_at: None,
+        },
     };
     ctx.env.as_contract(&ctx.contract_id, || {
         storage::set_profile(&ctx.env, &profile);

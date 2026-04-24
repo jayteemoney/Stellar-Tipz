@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use soroban_sdk::{testutils::Address as _, token, Address, Env, String};
+use soroban_sdk::{testutils::{Address as _, Ledger as _}, token, Address, Env, String};
 
 use crate::errors::ContractError;
 use crate::storage::DataKey;
@@ -52,7 +52,7 @@ fn setup_env() -> (
         updated_at: now,
         verification: crate::types::VerificationStatus {
             is_verified: false,
-            verification_type: None,
+            verification_type: crate::types::VerificationType::Unverified,
             verified_at: None,
             revoked_at: None,
         },
@@ -109,5 +109,5 @@ fn test_execute_due_subscription() {
     assert_eq!(token_client.balance(&contract_id), 100_000_000);
     
     let profile = client.get_profile(&creator);
-    assert_eq!(profile.unwrap().total_tips_received, 100_000_000);
+    assert_eq!(profile.total_tips_received, 100_000_000);
 }

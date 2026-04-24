@@ -236,8 +236,9 @@ pub fn get_leaderboard_size(env: &Env) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::{VerificationStatus, VerificationType};
     use crate::TipzContract;
-    use soroban_sdk::{testutils::Address as _, Address, Env, String};
+    use soroban_sdk::{testutils::Address as _, Address, Env, Map, String, Symbol};
 
     // Helper to create a Profile with minimal required fields
     fn make_profile(
@@ -252,7 +253,9 @@ mod tests {
             username: String::from_str(env, username),
             display_name: String::from_str(env, username),
             bio: String::from_str(env, ""),
+            website: String::from_str(env, ""),
             image_url: String::from_str(env, ""),
+            social_links: Map::<Symbol, String>::new(env),
             x_handle: String::from_str(env, ""),
             x_followers: 0,
             x_engagement_avg: 0,
@@ -262,6 +265,12 @@ mod tests {
             balance: 0,
             registered_at: now,
             updated_at: now,
+            verification: VerificationStatus {
+                is_verified: false,
+                verification_type: VerificationType::Unverified,
+                verified_at: None,
+                revoked_at: None,
+            },
         }
     }
 

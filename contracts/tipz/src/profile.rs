@@ -95,7 +95,9 @@ pub fn register_profile(
         username: username.clone(),
         display_name,
         bio,
+        website: String::from_str(env, ""),
         image_url,
+        social_links: soroban_sdk::Map::new(env),
         x_handle: normalized_x,
         x_followers: 0,
         x_engagement_avg: 0,
@@ -108,7 +110,7 @@ pub fn register_profile(
         updated_at: now,
         verification: crate::types::VerificationStatus {
             is_verified: false,
-            verification_type: None,
+            verification_type: crate::types::VerificationType::Unverified,
             verified_at: None,
             revoked_at: None,
         },

@@ -14,12 +14,12 @@
 
 #![cfg(test)]
 
-use soroban_sdk::{testutils::Address as _, token, Address, Env, String};
+use soroban_sdk::{testutils::Address as _, token, Address, Env, Map, String, Symbol};
 
 use crate::errors::ContractError;
 use crate::storage::DataKey;
 use crate::token as xlm;
-use crate::types::{Profile, Tip};
+use crate::types::{Profile, Tip, VerificationStatus, VerificationType};
 use crate::TipzContract;
 use crate::TipzContractClient;
 
@@ -59,7 +59,9 @@ fn setup_env() -> (
         username: String::from_str(&env, "alice"),
         display_name: String::from_str(&env, "Alice"),
         bio: String::from_str(&env, "Hello!"),
+        website: String::from_str(&env, ""),
         image_url: String::from_str(&env, ""),
+        social_links: Map::<Symbol, String>::new(&env),
         x_handle: String::from_str(&env, "alice_x"),
         x_followers: 0,
         x_engagement_avg: 0,
@@ -69,6 +71,12 @@ fn setup_env() -> (
         balance: 0,
         registered_at: now,
         updated_at: now,
+        verification: VerificationStatus {
+            is_verified: false,
+            verification_type: VerificationType::Unverified,
+            verified_at: None,
+            revoked_at: None,
+        },
     };
     env.as_contract(&contract_id, || {
         env.storage()
@@ -174,7 +182,9 @@ fn test_send_tip_self() {
         username: String::from_str(&env, "bob"),
         display_name: String::from_str(&env, "Bob"),
         bio: String::from_str(&env, ""),
+        website: String::from_str(&env, ""),
         image_url: String::from_str(&env, ""),
+        social_links: Map::<Symbol, String>::new(&env),
         x_handle: String::from_str(&env, ""),
         x_followers: 0,
         x_engagement_avg: 0,
@@ -184,6 +194,12 @@ fn test_send_tip_self() {
         balance: 0,
         registered_at: now,
         updated_at: now,
+        verification: VerificationStatus {
+            is_verified: false,
+            verification_type: VerificationType::Unverified,
+            verified_at: None,
+            revoked_at: None,
+        },
     };
     env.as_contract(&contract_id, || {
         env.storage()
@@ -305,7 +321,9 @@ fn test_send_tip_updates_leaderboard() {
         username: String::from_str(&env, "bob"),
         display_name: String::from_str(&env, "Bob"),
         bio: String::from_str(&env, ""),
+        website: String::from_str(&env, ""),
         image_url: String::from_str(&env, ""),
+        social_links: Map::<Symbol, String>::new(&env),
         x_handle: String::from_str(&env, ""),
         x_followers: 0,
         x_engagement_avg: 0,
@@ -315,6 +333,12 @@ fn test_send_tip_updates_leaderboard() {
         balance: 0,
         registered_at: now,
         updated_at: now,
+        verification: VerificationStatus {
+            is_verified: false,
+            verification_type: VerificationType::Unverified,
+            verified_at: None,
+            revoked_at: None,
+        },
     };
     env.as_contract(&contract_id, || {
         env.storage()

@@ -3,9 +3,15 @@
 use soroban_sdk::{contracttype, Address, String};
 
 /// Verification type for creator profiles.
+///
+/// `Unverified` is the default state — it replaces `Option::None` so that
+/// `VerificationType` can be embedded directly in a `#[contracttype]` struct
+/// without wrapping it in `Option` (which soroban-sdk does not support for
+/// custom contracttype enums).
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
 pub enum VerificationType {
+    Unverified,
     Identity,
     SocialMedia,
     Community,
@@ -17,11 +23,11 @@ pub enum VerificationType {
 pub struct VerificationStatus {
     /// Whether the creator is verified
     pub is_verified: bool,
-    /// Verification type (if verified)
-    pub verification_type: Option<VerificationType>,
-    /// Timestamp when verification was granted
+    /// Verification type (Unverified when not yet verified)
+    pub verification_type: VerificationType,
+    /// Timestamp when verification was granted (0 = not set)
     pub verified_at: Option<u64>,
-    /// Timestamp when verification was revoked (if applicable)
+    /// Timestamp when verification was revoked (0 = not revoked)
     pub revoked_at: Option<u64>,
 }
 

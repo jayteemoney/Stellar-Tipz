@@ -609,8 +609,9 @@ pub fn add_to_fees(env: &Env, fee: i128) -> Result<(), ContractError> {
 mod tests {
     use super::*;
     use soroban_sdk::testutils::storage::{Instance, Temporary};
-    use soroban_sdk::{testutils::Address as _, Env};
+    use soroban_sdk::{testutils::Address as _, Env, Map, Symbol};
 
+    use crate::types::{VerificationStatus, VerificationType};
     use crate::TipzContract;
 
     /// Creates a test `Env` and registers the contract, returning both.
@@ -712,7 +713,9 @@ mod tests {
             username: String::from_str(&env, "alice"),
             display_name: String::from_str(&env, "Alice"),
             bio: String::from_str(&env, ""),
+            website: String::from_str(&env, ""),
             image_url: String::from_str(&env, ""),
+            social_links: Map::<Symbol, String>::new(&env),
             x_handle: String::from_str(&env, ""),
             x_followers: 0,
             x_engagement_avg: 0,
@@ -722,6 +725,12 @@ mod tests {
             balance: 0,
             registered_at: 0,
             updated_at: 0,
+            verification: VerificationStatus {
+                is_verified: false,
+                verification_type: VerificationType::Unverified,
+                verified_at: None,
+                revoked_at: None,
+            },
         };
         env.as_contract(&id, || {
             set_profile(&env, &profile);
@@ -738,7 +747,9 @@ mod tests {
             username: String::from_str(&env, "bob"),
             display_name: String::from_str(&env, "Bob"),
             bio: String::from_str(&env, ""),
+            website: String::from_str(&env, ""),
             image_url: String::from_str(&env, ""),
+            social_links: Map::<Symbol, String>::new(&env),
             x_handle: String::from_str(&env, ""),
             x_followers: 0,
             x_engagement_avg: 0,
@@ -748,6 +759,12 @@ mod tests {
             balance: 500,
             registered_at: 100,
             updated_at: 200,
+            verification: VerificationStatus {
+                is_verified: false,
+                verification_type: VerificationType::Unverified,
+                verified_at: None,
+                revoked_at: None,
+            },
         };
         env.as_contract(&id, || {
             set_profile(&env, &profile);
@@ -883,7 +900,9 @@ mod tests {
             username: String::from_str(&env, "testuser"),
             display_name: String::from_str(&env, "Test User"),
             bio: String::from_str(&env, ""),
+            website: String::from_str(&env, ""),
             image_url: String::from_str(&env, ""),
+            social_links: Map::<Symbol, String>::new(&env),
             x_handle: String::from_str(&env, ""),
             x_followers: 0,
             x_engagement_avg: 0,
@@ -893,6 +912,12 @@ mod tests {
             balance: 0,
             registered_at: 0,
             updated_at: 0,
+            verification: VerificationStatus {
+                is_verified: false,
+                verification_type: VerificationType::Unverified,
+                verified_at: None,
+                revoked_at: None,
+            },
         };
         env.as_contract(&id, || {
             // Set profile

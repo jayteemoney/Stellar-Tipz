@@ -8,7 +8,7 @@
 //! Topic tuple  → `(Symbol, Symbol)`   – identifies the event type
 //! Data tuple   → `(field, field, …)`  – the payload
 
-use soroban_sdk::{symbol_short, Address, Env, String, Vec};
+use soroban_sdk::{symbol_short, Address, Env, String, Symbol, Vec};
 
 use crate::types::BatchSkip;
 
@@ -205,7 +205,7 @@ pub fn emit_x_metrics_batch_completed(
 /// Data   : `(creator: Address, verification_type: VerificationType)`
 pub fn emit_verification_requested(env: &Env, creator: &Address, verification_type: &crate::types::VerificationType) {
     env.events().publish(
-        (symbol_short!("verification"), symbol_short!("requested")),
+        (Symbol::new(env, "verification"), symbol_short!("requested")),
         (creator.clone(), verification_type.clone()),
     );
 }
@@ -214,7 +214,7 @@ pub fn emit_verification_requested(env: &Env, creator: &Address, verification_ty
 /// Data   : `(creator: Address, verification_type: VerificationType)`
 pub fn emit_verification_approved(env: &Env, creator: &Address, verification_type: &crate::types::VerificationType) {
     env.events().publish(
-        (symbol_short!("verification"), symbol_short!("approved")),
+        (Symbol::new(env, "verification"), symbol_short!("approved")),
         (creator.clone(), verification_type.clone()),
     );
 }
@@ -223,7 +223,7 @@ pub fn emit_verification_approved(env: &Env, creator: &Address, verification_typ
 /// Data   : `(creator: Address,)`
 pub fn emit_verification_revoked(env: &Env, creator: &Address) {
     env.events().publish(
-        (symbol_short!("verification"), symbol_short!("revoked")),
+        (Symbol::new(env, "verification"), symbol_short!("revoked")),
         (creator.clone(),),
     );
 }
