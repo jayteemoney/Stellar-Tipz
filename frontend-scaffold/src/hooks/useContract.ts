@@ -82,7 +82,9 @@ export const useContract = () => {
 
   // Warn once in development when contract ID is not configured
   if (!contractId) {
-    console.warn("[useContract] VITE_CONTRACT_ID is not set — contract calls will be skipped.");
+    console.warn(
+      "[useContract] VITE_CONTRACT_ID is not set — contract calls will be skipped.",
+    );
   }
 
   // --- Read-only Methods ---
@@ -192,41 +194,29 @@ export const useContract = () => {
     if (!contractId) {
       throw new Error("Contract ID is not configured");
     }
-    const key = buildContractCacheKey(
-      "get_stats",
-      networkDetails.network,
-      contractId,
-    );
 
-    return contractQueryCache.getOrFetch<ContractStats>(
-      key,
-      PLATFORM_STATS_TTL_MS,
-      async () => {
-        const contract = new Contract(contractId);
-        const txBuilder = wallet.publicKey
-          ? await getTxBuilder(
-              wallet.publicKey,
-              BASE_FEE,
-              server,
-              networkDetails.networkPassphrase,
-            )
-          : getSimulationTxBuilder(
-              READ_ONLY_SOURCE,
-              BASE_FEE,
-              networkDetails.networkPassphrase,
-            );
-        const tx = txBuilder
-          .addOperation(contract.call("get_stats"))
-          .setTimeout(TimeoutInfinite)
-          .build();
+    const contract = new Contract(contractId);
+    const txBuilder = wallet.publicKey
+      ? await getTxBuilder(
+          wallet.publicKey,
+          BASE_FEE,
+          server,
+          networkDetails.networkPassphrase,
+        )
+      : getSimulationTxBuilder(
+          READ_ONLY_SOURCE,
+          BASE_FEE,
+          networkDetails.networkPassphrase,
+        );
+    const tx = txBuilder
+      .addOperation(contract.call("get_stats"))
+      .setTimeout(TimeoutInfinite)
+      .build();
 
-        return simulateTx<ContractStats>(tx, server);
-      },
-    );
+    return simulateTx<ContractStats>(tx, server);
   }, [contractId, wallet.publicKey, server, networkDetails]);
 
   const getMinTipAmount = useCallback(async (): Promise<string> => {
-    // Default of 1 XLM returned when contract is unavailable or not yet deployed
     const DEFAULT_MIN_TIP_XLM = "1";
 
     if (!contractId) {
@@ -253,7 +243,6 @@ export const useContract = () => {
         .build();
 
       const minTipStroops = await simulateTx<number>(tx, server);
-      // Convert stroops to XLM string for display
       return (minTipStroops / 1e7).toString();
     } catch {
       return DEFAULT_MIN_TIP_XLM;
@@ -440,12 +429,11 @@ export const useContract = () => {
         networkDetails.networkPassphrase,
       );
 
-      // Helper function to convert optional string to ScVal
-      // Returns an Option with Some(value) if value is provided, else None
       const optionalStringToScVal = (value?: string): xdr.ScVal => {
         if (value !== undefined && value !== "") {
-          return nativeToScVal({ type: "some", value: value });
+          return nativeToScVal({ type: "some", value });
         }
+
         return nativeToScVal({ type: "none" });
       };
 
@@ -463,15 +451,9 @@ export const useContract = () => {
         .setTimeout(TimeoutInfinite)
         .build();
 
-      const xdr_tx = tx.toXDR();
-      const signedXdr = await wallet.signTransaction(xdr_tx);
-      const txHash = await submitTx(
-        signedXdr,
-        networkDetails.networkPassphrase,
-        server,
-      );
-      contractQueryCache.invalidateAll();
-      return txHash;
+      const xdrTx = tx.toXDR();
+      const signedXdr = await wallet.signTransaction(xdrTx);
+      return submitTx(signedXdr, networkDetails.networkPassphrase, server);
     },
     [contractId, wallet, server, networkDetails],
   );
@@ -492,7 +474,6 @@ export const useContract = () => {
         networkDetails.networkPassphrase,
       );
 
-      // Convert XLM amount to stroops before sending to contract
       const stroopAmount = xlmToStroop(amount).toString();
 
       const tx = txBuilder
@@ -533,7 +514,6 @@ export const useContract = () => {
         networkDetails.networkPassphrase,
       );
 
-      // Convert XLM amount to stroops before sending to contract
       const stroopAmount = xlmToStroop(amount).toString();
 
       const tx = txBuilder

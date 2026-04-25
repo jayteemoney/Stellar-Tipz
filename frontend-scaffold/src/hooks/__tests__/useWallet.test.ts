@@ -1,16 +1,19 @@
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as walletKitModule from "@creit.tech/stellar-wallets-kit";
 import { useWallet } from "../useWallet";
 import { useWalletStore } from "../../store/walletStore";
-import * as walletKitModule from "@creit.tech/stellar-wallets-kit";
 
 interface WalletSelectionHandler {
   onWalletSelected: (option: { id: string }) => Promise<void>;
 }
 
-const mockWalletKit = (walletKitModule as unknown as { __mockWalletKit: Record<string, import("vitest").Mock> }).__mockWalletKit;
+const mockWalletKit = (
+  walletKitModule as unknown as {
+    __mockWalletKit: Record<string, ReturnType<typeof vi.fn>>;
+  }
+).__mockWalletKit;
 
-// Mock window.freighter
 Object.defineProperty(window, "freighter", {
   value: {
     getNetwork: vi.fn(),
@@ -21,20 +24,26 @@ Object.defineProperty(window, "freighter", {
 
 describe("useWallet", () => {
   beforeEach(() => {
-    // Reset the store before each test
+    localStorage.clear();
+    useWalletStore.persist.clearStorage();
     useWalletStore.setState({
       publicKey: null,
       connected: false,
       connecting: false,
+      isReconnecting: false,
       error: null,
       network: "TESTNET",
+      walletType: null,
+      signingStatus: "idle",
     });
+
     vi.clearAllMocks();
     Object.values(mockWalletKit).forEach((mockFn) => {
       if (typeof mockFn === "function" && "mockReset" in mockFn) {
-        (mockFn as ReturnType<typeof vi.fn>).mockReset();
+        mockFn.mockReset();
       }
     });
+    vi.useRealTimers();
   });
 
   it("should return initial wallet state", () => {
@@ -53,12 +62,13 @@ describe("useWallet", () => {
     const mockAddress = "GD1234567890ABCDEF";
     const mockOnWalletSelected = vi.fn();
 
-    // Mock the kit.openModal to call the callback with address
     mockWalletKit.openModal.mockImplementation(
       ({ onWalletSelected }: WalletSelectionHandler) => {
         mockOnWalletSelected.mockImplementation(
           async (option: { id: string }) => {
-            mockWalletKit.setWallet(option.id);
+            (mockWalletKit.setWallet as unknown as (id: string) => void)(
+              option.id,
+            );
             mockWalletKit.getAddress.mockResolvedValue({
               address: mockAddress,
             });
@@ -70,10 +80,9 @@ describe("useWallet", () => {
     );
 
     await act(async () => {
-      result.current.connect();
+      await result.current.connect();
     });
 
-    // Simulate wallet selection
     await act(async () => {
       await mockOnWalletSelected({ id: "freighter" });
     });
@@ -87,13 +96,15 @@ describe("useWallet", () => {
   });
 
   it("should disconnect wallet and clear state", () => {
-    // First set up a connected state
     useWalletStore.setState({
       publicKey: "GD1234567890ABCDEF",
       connected: true,
       connecting: false,
+      isReconnecting: false,
       error: null,
       network: "TESTNET",
+      walletType: "freighter",
+      signingStatus: "idle",
     });
 
     const { result } = renderHook(() => useWallet());
@@ -115,12 +126,13 @@ describe("useWallet", () => {
 
     const mockOnWalletSelected = vi.fn();
 
-    // Mock the kit.openModal to call the callback with error
     mockWalletKit.openModal.mockImplementation(
       ({ onWalletSelected }: WalletSelectionHandler) => {
         mockOnWalletSelected.mockImplementation(
           async (option: { id: string }) => {
-            mockWalletKit.setWallet(option.id);
+            (mockWalletKit.setWallet as unknown as (id: string) => void)(
+              option.id,
+            );
             mockWalletKit.getAddress.mockRejectedValue(
               new Error("Connection failed"),
             );
@@ -132,10 +144,9 @@ describe("useWallet", () => {
     );
 
     await act(async () => {
-      result.current.connect();
+      await result.current.connect();
     });
 
-    // Simulate wallet selection with error
     await act(async () => {
       await mockOnWalletSelected({ id: "freighter" });
     });
@@ -165,13 +176,15 @@ describe("useWallet", () => {
     const mockXdr = "AAAAAgAAAAA=";
     const mockSignedXdr = "AAAAAwAAAAA=";
 
-    // Set up connected state
     useWalletStore.setState({
       publicKey: "GD1234567890ABCDEF",
       connected: true,
       connecting: false,
+      isReconnecting: false,
       error: null,
       network: "TESTNET",
+      walletType: "freighter",
+      signingStatus: "idle",
     });
 
     const { result } = renderHook(() => useWallet());
@@ -190,7 +203,7 @@ describe("useWallet", () => {
     await act(async () => {
       vi.runAllTimers();
     });
-    
+
     vi.useRealTimers();
   });
 });
