@@ -4,6 +4,8 @@ mod test_admin;
 mod test_credit;
 mod test_events;
 mod test_init;
+mod test_integration;
+mod test_integration_advanced;
 mod test_leaderboard;
 mod test_profile_query;
 mod test_profiles;
