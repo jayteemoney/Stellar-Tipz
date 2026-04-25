@@ -247,7 +247,7 @@ pub fn emit_x_metrics_batch_completed(
 
 // ── Verification events ───────────────────────────────────────────────────────
 
-/// Topics : `("verification", "requested")`
+/// Topics : `("verify", "requested")`
 /// Data   : `(creator: Address, verification_type: VerificationType)`
 pub fn emit_verification_requested(
     env: &Env,
@@ -255,12 +255,12 @@ pub fn emit_verification_requested(
     verification_type: &crate::types::VerificationType,
 ) {
     env.events().publish(
-        (Symbol::new(env, "verification"), symbol_short!("requested")),
+        (symbol_short!("verify"), symbol_short!("requested")),
         (creator.clone(), verification_type.clone()),
     );
 }
 
-/// Topics : `("verification", "approved")`
+/// Topics : `("verify", "approved")`
 /// Data   : `(creator: Address, verification_type: VerificationType)`
 pub fn emit_verification_approved(
     env: &Env,
@@ -268,16 +268,16 @@ pub fn emit_verification_approved(
     verification_type: &crate::types::VerificationType,
 ) {
     env.events().publish(
-        (Symbol::new(env, "verification"), symbol_short!("approved")),
+        (symbol_short!("verify"), symbol_short!("approved")),
         (creator.clone(), verification_type.clone()),
     );
 }
 
-/// Topics : `("verification", "revoked")`
+/// Topics : `("verify", "revoked")`
 /// Data   : `(creator: Address,)`
 pub fn emit_verification_revoked(env: &Env, creator: &Address) {
     env.events().publish(
-        (Symbol::new(env, "verification"), symbol_short!("revoked")),
+        (symbol_short!("verify"), symbol_short!("revoked")),
         (creator.clone(),),
     );
 }

@@ -28,7 +28,7 @@ pub enum LeaderboardPeriod {
 
 /// Verification status for a creator profile.
 #[contracttype]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct VerificationStatus {
     /// Whether the creator is verified
     pub is_verified: bool,

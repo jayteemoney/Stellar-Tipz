@@ -82,9 +82,7 @@ const TipPage: React.FC = () => {
     error: flowError,
     txHash,
   } = useTipFlow(creator?.owner || "");
-  
-  // Transaction guard to prevent duplicate submissions
-  const { isPending: isTransactionPending, startTransaction } = useTransactionGuard();
+  const flowErrorCategory = flowError ? categorizeError(flowError).category : null;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -129,7 +127,7 @@ const TipPage: React.FC = () => {
     return (
       <PageContainer maxWidth="xl" className="py-20">
         <ErrorState
-          category={categorizeError(fetchError || "Not Found")}
+          category={categorizeError(fetchError || "Not Found").category}
           onRetry={fetchCreator}
         />
       </PageContainer>
@@ -242,7 +240,7 @@ const TipPage: React.FC = () => {
               creator={creator}
               errorMessage={
                 flowError
-                  ? categorizeError(flowError) === "network"
+                  ? flowErrorCategory === "network"
                     ? ERRORS.NETWORK
                     : ERRORS.CONTRACT
                   : undefined
@@ -323,7 +321,7 @@ const TipPage: React.FC = () => {
               txHash={txHash ?? undefined}
               errorMessage={
                 flowError
-                  ? categorizeError(flowError) === "network"
+                  ? flowErrorCategory === "network"
                     ? ERRORS.NETWORK
                     : ERRORS.CONTRACT
                   : undefined

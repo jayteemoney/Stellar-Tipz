@@ -20,7 +20,7 @@ struct TestCtx<'a> {
     env: Env,
     client: TipzContractClient<'a>,
     admin: Address,
-    fee_collector: Address,
+    _fee_collector: Address,
     contract_id: Address,
 }
 
@@ -45,7 +45,7 @@ fn setup() -> TestCtx<'static> {
         env,
         client,
         admin,
-        fee_collector,
+        _fee_collector: fee_collector,
         contract_id,
     }
 }
@@ -70,12 +70,7 @@ fn insert_profile(ctx: &TestCtx, owner: &Address) {
         balance: 0,
         registered_at: now,
         updated_at: now,
-        verification: VerificationStatus {
-            is_verified: false,
-            verification_type: VerificationType::Unverified,
-            verified_at: None,
-            revoked_at: None,
-        },
+        verification: crate::types::VerificationStatus::default(),
     };
     ctx.env.as_contract(&ctx.contract_id, || {
         storage::set_profile(&ctx.env, &profile);

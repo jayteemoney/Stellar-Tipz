@@ -76,7 +76,9 @@ const Footer: React.FC = () => {
               {t("footer.resources")}
             </h3>
             <a
-              href="/docs"
+              href="https://github.com/Akanimoh12/Stellar-Tipz#readme"
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-fit text-sm text-gray-600 transition-opacity hover:opacity-60 dark:text-gray-400"
             >
               {t("footer.docs")}

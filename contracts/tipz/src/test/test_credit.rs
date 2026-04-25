@@ -48,12 +48,7 @@ fn blank_profile(env: &Env, now: u64) -> Profile {
         balance: 0,
         registered_at: now,
         updated_at: now,
-        verification: VerificationStatus {
-            is_verified: false,
-            verification_type: VerificationType::Unverified,
-            verified_at: None,
-            revoked_at: None,
-        },
+        verification: crate::types::VerificationStatus::default(),
     }
 }
 

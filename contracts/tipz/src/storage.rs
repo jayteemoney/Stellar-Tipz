@@ -84,14 +84,8 @@ pub enum DataKey {
     CreatorTipCount(Address),
     /// Reverse index: (creator, local_index) → global tip ID
     CreatorTip(Address, u32),
-    /// Pending time-locked admin rotation (`None` when idle)
-    PendingAdminChange,
-    /// Monotonic id for admin change history entries
-    AdminChangeHistoryNextId,
-    /// Admin change history item by sequential id
-    AdminChangeHistoryItem(u32),
-    /// Verification status by creator address
-    VerificationStatus(Address),
+    /// Pending admin address (proposed but not yet accepted)
+    PendingAdmin,
     /// Pending verification request by creator address
     VerificationRequest(Address),
     /// Subscription by (subscriber, creator)
@@ -949,12 +943,7 @@ mod tests {
             balance: 0,
             registered_at: 0,
             updated_at: 0,
-            verification: VerificationStatus {
-                is_verified: false,
-                verification_type: VerificationType::Unverified,
-                verified_at: None,
-                revoked_at: None,
-            },
+            verification: crate::types::VerificationStatus::default(),
         };
         env.as_contract(&id, || {
             set_profile(&env, &profile);
@@ -983,12 +972,7 @@ mod tests {
             balance: 500,
             registered_at: 100,
             updated_at: 200,
-            verification: VerificationStatus {
-                is_verified: false,
-                verification_type: VerificationType::Unverified,
-                verified_at: None,
-                revoked_at: None,
-            },
+            verification: crate::types::VerificationStatus::default(),
         };
         env.as_contract(&id, || {
             set_profile(&env, &profile);
@@ -1136,12 +1120,7 @@ mod tests {
             balance: 0,
             registered_at: 0,
             updated_at: 0,
-            verification: VerificationStatus {
-                is_verified: false,
-                verification_type: VerificationType::Unverified,
-                verified_at: None,
-                revoked_at: None,
-            },
+            verification: crate::types::VerificationStatus::default(),
         };
         env.as_contract(&id, || {
             // Set profile
@@ -1158,45 +1137,6 @@ mod tests {
 // ──────────────────────────────────────────────────────────────────────────────
 // Verification storage functions
 // ──────────────────────────────────────────────────────────────────────────────
-
-#[allow(dead_code)]
-pub fn get_verification_status(
-    env: &Env,
-    address: &Address,
-) -> Option<crate::types::VerificationStatus> {
-    env.storage()
-        .persistent()
-        .get(&DataKey::VerificationStatus(address.clone()))
-}
-
-#[allow(dead_code)]
-pub fn set_verification_status(
-    env: &Env,
-    address: &Address,
-    status: &crate::types::VerificationStatus,
-) {
-    env.storage()
-        .persistent()
-        .set(&DataKey::VerificationStatus(address.clone()), status);
-    bump_profile_ttl(env, address);
-}
-
-#[allow(dead_code)]
-pub fn remove_verification_status(env: &Env, address: &Address) {
-    env.storage()
-        .persistent()
-        .remove(&DataKey::VerificationStatus(address.clone()));
-}
-
-#[allow(dead_code)]
-pub fn get_verification_request(
-    env: &Env,
-    address: &Address,
-) -> Option<crate::types::VerificationType> {
-    env.storage()
-        .persistent()
-        .get(&DataKey::VerificationRequest(address.clone()))
-}
 
 pub fn set_verification_request(
     env: &Env,

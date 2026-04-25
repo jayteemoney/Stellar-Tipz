@@ -1,10 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BrowserRouter } from "react-router-dom";
 import TopCreatorsSection from "./TopCreatorsSection";
 import * as hooks from "@/hooks";
 
-// Mock the hooks
 vi.mock("@/hooks", () => ({
   useContract: vi.fn(),
 }));
@@ -12,6 +11,7 @@ vi.mock("@/hooks", () => ({
 vi.mock("@/helpers/env", () => ({
   env: {
     contractId: "C1234567890ABCDEF",
+    useMockData: false,
   },
 }));
 
@@ -75,7 +75,7 @@ describe("TopCreatorsSection", () => {
     );
 
   it("renders loading state with 5 skeletons", () => {
-    mockGetLeaderboard.mockReturnValue(new Promise(() => {})); // Never resolves
+    mockGetLeaderboard.mockReturnValue(new Promise(() => {}));
     renderComponent();
 
     const skeletons = screen.getAllByTestId("skeleton-rect");
@@ -90,6 +90,7 @@ describe("TopCreatorsSection", () => {
     await waitFor(() => {
       expect(screen.getByText(/No creators yet/i)).toBeInTheDocument();
     });
+
     expect(screen.queryByTestId("profile-card")).not.toBeInTheDocument();
     expect(screen.getByText(/Top Creators/i)).toBeInTheDocument();
     expect(screen.getByText(/View Full Leaderboard/i)).toBeInTheDocument();
@@ -112,16 +113,15 @@ describe("TopCreatorsSection", () => {
   });
 
   it("handles error state gracefully", async () => {
-    mockGetLeaderboard.mockRejectedValue(new Error("Fetch failed"));
+    mockGetLeaderboard.mockRejectedValue(new TypeError("Failed to fetch"));
     renderComponent();
 
     await waitFor(() => {
-      expect(
-        screen.getByText(
-          /Unable to connect\. Please check your internet connection\./i,
-        ),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Connection Issue/i)).toBeInTheDocument();
     });
+
+    expect(screen.getByText(/TypeError: Failed to fetch/i)).toBeInTheDocument();
+    expect(screen.getByText(/Try Again/i)).toBeInTheDocument();
   });
 
   it("navigates to leaderboard on link click", async () => {
@@ -131,6 +131,7 @@ describe("TopCreatorsSection", () => {
     await waitFor(() => {
       screen.getByText(/View Full Leaderboard/i).click();
     });
+
     expect(mockNavigate).toHaveBeenCalledWith("/leaderboard");
   });
 });
